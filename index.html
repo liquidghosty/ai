@@ -14,6 +14,7 @@ body {
 }
 .app { width:100%; max-width:1280px; height:94vh; height:94dvh; display:flex; gap:16px; }
 
+/* SIDEBAR */
 .sidebar {
   width:260px; flex-shrink:0; background:rgba(14,18,28,0.85);
   backdrop-filter:blur(18px); border-radius:32px;
@@ -57,6 +58,7 @@ body {
   font-size:0.75rem; cursor:pointer;
 }
 
+/* CHAT */
 .chat-container {
   flex:1; min-width:0; background:rgba(18,22,32,0.85);
   backdrop-filter:blur(18px); border-radius:42px;
@@ -82,6 +84,7 @@ body {
 }
 .header-controls { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 
+/* Режим */
 .mode-toggle {
   display:flex; align-items:center;
   background:rgba(255,255,255,0.03);
@@ -103,6 +106,7 @@ body {
   background:linear-gradient(145deg,#1a8f5a,#0f6b40);
   box-shadow:0 2px 8px rgba(30,200,120,0.4);
 }
+.mode-btn:hover:not(.active) { color:#c0d8ff; background:rgba(255,255,255,0.05); }
 
 .model-selector {
   display:flex; align-items:center; gap:8px;
@@ -126,13 +130,55 @@ body {
 .mini-btn.green { border-color:rgba(80,255,150,0.3); background:rgba(80,255,150,0.08); color:#7affb0; }
 .mini-btn:disabled { opacity:0.5; cursor:not-allowed; }
 
+/* Тумблер прокси */
+.proxy-switch {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 10px 5px 6px;
+  border-radius:100px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.08);
+  cursor:pointer; user-select:none;
+  transition:all 0.25s;
+}
+.proxy-switch:hover {
+  background:rgba(255,255,255,0.06);
+  border-color:rgba(80,150,255,0.3);
+}
+.proxy-switch .track {
+  position:relative; width:34px; height:18px;
+  background:rgba(255,80,80,0.35);
+  border-radius:100px;
+  transition:background 0.25s;
+  flex-shrink:0;
+}
+.proxy-switch.on .track {
+  background:linear-gradient(145deg,#1a8f5a,#0f6b40);
+  box-shadow:0 0 10px rgba(30,200,120,0.4);
+}
+.proxy-switch .knob {
+  position:absolute; top:2px; left:2px;
+  width:14px; height:14px; border-radius:50%;
+  background:white;
+  transition:transform 0.25s;
+  box-shadow:0 1px 4px rgba(0,0,0,0.4);
+}
+.proxy-switch.on .knob { transform:translateX(16px); }
+.proxy-switch .label {
+  font-size:0.72rem; font-weight:600;
+  color:#ff9999; transition:color 0.25s;
+  white-space:nowrap;
+}
+.proxy-switch.on .label { color:#7affb0; }
+
 .proxy-status-dot {
   width:10px; height:10px; border-radius:50%;
   background:#ff5555; box-shadow:0 0 8px #ff5555;
   flex-shrink:0; transition:all 0.3s; margin-left:4px;
 }
 .proxy-status-dot.ok { background:#4aff8a; box-shadow:0 0 10px #4aff8a; }
+.proxy-status-dot.off { background:#666; box-shadow:0 0 6px #666; }
 
+/* MESSAGES */
 .chat-messages {
   flex:1; overflow-y:auto; padding:22px;
   display:flex; flex-direction:column; gap:14px; scroll-behavior:smooth;
@@ -246,6 +292,7 @@ body {
   border-radius:6px; line-height:1.5;
 }
 
+/* INPUT */
 .chat-input-area {
   padding:14px 20px 18px; background:rgba(8,12,20,0.6);
   border-top:1px solid rgba(255,255,255,0.04);
@@ -311,6 +358,22 @@ body {
 .welcome-message { text-align:center; color:#6b7d9c; font-size:0.85rem; padding:20px 10px; }
 .welcome-message strong { color:#9ab4e0; font-weight:500; }
 
+/* ═══ ЛОГИ: РАЗМЕР 0 ═══ */
+.log-toggle {
+  position:fixed; right:0; bottom:0;
+  width:0; height:0;
+  padding:0; margin:0;
+  border:none; outline:none;
+  background:transparent; color:transparent;
+  font-size:0; line-height:0;
+  overflow:hidden;
+  pointer-events:none;
+  opacity:0;
+  visibility:hidden;
+  z-index:-1;
+}
+.log-toggle .badge { display:none !important; }
+
 .log-panel {
   position:fixed; right:16px; bottom:16px; width:460px; max-height:50vh;
   background:rgba(10,14,22,0.97); backdrop-filter:blur(18px);
@@ -319,54 +382,13 @@ body {
   display:flex; flex-direction:column; z-index:200;
   transform:translateY(calc(100% + 20px));
   transition:transform 0.35s cubic-bezier(0.4,0,0.2,1); overflow:hidden;
+  pointer-events:none;
+  opacity:0;
+  visibility:hidden;
 }
 .log-panel.open { transform:translateY(0); }
-.log-header {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06);
-  background:rgba(255,255,255,0.02);
-}
-.log-header-title { display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; color:#a0c0ff; text-transform:uppercase; }
-.log-header-title .dot { width:8px; height:8px; border-radius:50%; background:#4aff8a; box-shadow:0 0 10px #4aff8a; animation:pulse 2s infinite; }
-.log-actions { display:flex; gap:6px; }
-.log-btn {
-  width:26px; height:26px; border-radius:8px;
-  border:1px solid rgba(255,255,255,0.08);
-  background:rgba(255,255,255,0.03); color:#8a9bb5;
-  font-size:0.75rem; cursor:pointer;
-}
-.log-body {
-  flex:1; overflow-y:auto; padding:8px 12px;
-  font-family:'SF Mono','Consolas',monospace; font-size:0.7rem;
-  line-height:1.5; display:flex; flex-direction:column; gap:2px;
-}
-.log-body::-webkit-scrollbar { width:5px; }
-.log-body::-webkit-scrollbar-thumb { background:rgba(100,150,255,0.3); border-radius:10px; }
-.log-entry { padding:3px 6px; border-radius:5px; word-break:break-word; display:flex; gap:8px; }
-.log-entry .log-time { color:#5a6b85; flex-shrink:0; }
-.log-entry.info { color:#8ab4ff; }
-.log-entry.success { color:#6dffa8; }
-.log-entry.warn { color:#ffcc66; }
-.log-entry.error { color:#ff8080; background:rgba(255,60,60,0.08); }
-.log-entry.request { color:#c9a0ff; }
-.log-entry.response { color:#a0ffd4; }
-.log-toggle {
-  position:fixed; right:20px; bottom:20px; width:0px; height:0px;
-  border-radius:50%; border:1px solid rgba(80,150,255,0.4);
-  background:linear-gradient(145deg,#1a2c4d,#0f1a30);
-  color:#a0c8ff; font-size:1.15rem; cursor:pointer;
-  display:flex; align-items:center; justify-content:center;
-  box-shadow:0 10px 30px rgba(0,0,0,0.6); z-index:199;
-}
-.log-toggle .badge {
-  position:absolute; top:-4px; right:-4px; min-width:20px; height:20px;
-  padding:0 6px; border-radius:10px;
-  background:linear-gradient(145deg,#ff4d4d,#c42020);
-  color:white; font-size:0.65rem; font-weight:700;
-  display:flex; align-items:center; justify-content:center;
-  transform:scale(0); transition:transform 0.2s;
-}
-.log-toggle .badge.show { transform:scale(1); }
+.log-header { display:none; }
+.log-body { display:none; }
 
 .menu-toggle {
   display:none; width:38px; height:38px; border-radius:12px;
@@ -385,6 +407,7 @@ body {
 .img-viewer.show { display:flex; }
 .img-viewer img { max-width:100%; max-height:100%; border-radius:12px; }
 
+/* MODALS */
 .modal-backdrop {
   position:fixed; inset:0; background:rgba(0,0,0,0.75);
   backdrop-filter:blur(6px); z-index:300;
@@ -474,7 +497,6 @@ body {
   .sidebar { position:fixed; left:0; top:0; bottom:0; width:260px; z-index:100; transform:translateX(-105%); transition:transform 0.3s; }
   .sidebar.open { transform:translateX(0); }
   .menu-toggle { display:flex; }
-  .log-panel { width:calc(100% - 32px); right:16px; left:16px; }
   .chat-header { padding:10px 14px; }
   .chat-header h1 { font-size:1rem; }
   .mini-btn { padding:5px 8px; font-size:0.7rem; }
@@ -482,6 +504,7 @@ body {
   .chat-messages { padding:14px; }
   .chat-input-area { padding:10px 12px 14px; }
   .bubble { font-size:0.9rem; }
+  .proxy-switch .label { display:none; }
 }
 </style>
 </head>
@@ -519,6 +542,10 @@ body {
             <option value="gpt-5.6-luna">🌙 GPT-5.6 Luna</option>
           </select>
         </div>
+        <div class="proxy-switch" id="proxySwitch" title="Вкл/Выкл свой прокси">
+          <div class="track"><div class="knob"></div></div>
+          <span class="label">Выкл</span>
+        </div>
         <button class="mini-btn" id="proxyBtn" title="Настройки прокси">⚙️</button>
         <span class="proxy-status-dot" id="proxyStatusDot"></span>
         <button class="mini-btn green" id="testBtn">🧪 Тест</button>
@@ -551,21 +578,16 @@ body {
   </main>
 </div>
 
-<button class="log-toggle" id="logToggle">📋<span class="badge" id="logBadge">0</span></button>
-
-<div class="log-panel" id="logPanel">
-  <div class="log-header">
-    <div class="log-header-title"><span class="dot"></span> Логи</div>
-    <div class="log-actions">
-      <button class="log-btn" id="logClearBtn">🗑</button>
-      <button class="log-btn" id="logCloseBtn">✕</button>
-    </div>
-  </div>
+<!-- Логи: размер 0, невидимы -->
+<button class="log-toggle" id="logToggle" aria-hidden="true"></button>
+<div class="log-panel" id="logPanel" aria-hidden="true">
+  <div class="log-header"></div>
   <div class="log-body" id="logBody"></div>
 </div>
 
 <div class="img-viewer" id="imgViewer"><img id="imgViewerContent" src=""></div>
 
+<!-- MODAL ПРОКСИ -->
 <div class="modal-backdrop" id="proxyModal">
   <div class="modal">
     <h2>⚙️ Настройки прокси</h2>
@@ -580,6 +602,7 @@ body {
   </div>
 </div>
 
+<!-- MODAL КАМЕРА -->
 <div class="modal-backdrop" id="cameraModal">
   <div class="camera-modal">
     <h2>📷 Фото</h2>
@@ -600,10 +623,14 @@ body {
 </div>
 
 <script>
+// ═══════════════════════════════════════════
+// КОНФИГ
+// ═══════════════════════════════════════════
 const API_KEY = 'sk-cvc-100dd2c5aa3bdf9418763e3af2be2e45041e7ef08c6293dffc5a3916b73d51b1';
 const UPSTREAM = 'https://shprotoness-ai.jq9gfk.workers.dev/v1';
 const ENDPOINT = `${UPSTREAM}/chat/completions`;
 const PROXY_KEY = 'ai_proxy_url';
+const PROXY_ENABLED_KEY = 'ai_proxy_enabled';
 const MODE_KEY = 'ai_chat_mode';
 
 const STORAGE_KEY = 'ai_chat_history_v1';
@@ -611,11 +638,9 @@ const LEGACY_KEYS = ['ai_chats_v1','ai_chats_v2','ai_chats_v3','ai_chats_v4','ai
 
 const MAX_IMG_SIZE = 5 * 1024 * 1024;
 
-// 💰 ЦЕНЫ: 1.45 ₽ за 200 000 тарифных токенов
+// 💰 Цены: 1.45 ₽ за 200 000 тарифных токенов
 const PRICE_BLOCK = 1.45;
 const BLOCK_SIZE = 200000;
-
-// Коэффициенты моделей (тарифных токенов за 1 реальный)
 const MODEL_COEF = {
   'mimo-v2.5':    0.05,
   'gpt-5.6-luna': 0.33
@@ -626,7 +651,6 @@ function calcCost(model, totalTokens) {
   const tarifTokens = totalTokens * coef;
   return (tarifTokens / BLOCK_SIZE) * PRICE_BLOCK;
 }
-
 function fmtCost(v) {
   if (v <= 0) return '0 ₽';
   if (v < 0.0001) return '< 0.0001 ₽';
@@ -642,20 +666,24 @@ const MODEL_CAPS = {
 };
 function modelSupportsImages(m) { return !!(MODEL_CAPS[m]?.images); }
 
+// ═══════════════════════════════════════════
+// СОСТОЯНИЕ
+// ═══════════════════════════════════════════
 let conversations = [];
 let activeChatId = null;
 let isLoading = false;
-let logs = [];
-let unreadLogs = 0;
-let logPanelOpen = false;
 let lastWorkingTransport = null;
 let pendingImage = null;
 let appMode = 'eco';
+let proxyEnabled = true;
 
 let cameraStream = null;
 let currentFacing = 'environment';
 let cameraActive = false;
 
+// ═══════════════════════════════════════════
+// DOM
+// ═══════════════════════════════════════════
 const chatMessages = document.getElementById('chatMessages');
 const userInput = document.getElementById('userInput');
 const sendBtn = document.getElementById('sendBtn');
@@ -669,14 +697,9 @@ const sidebar = document.getElementById('sidebar');
 const overlay = document.getElementById('overlay');
 const menuToggle = document.getElementById('menuToggle');
 const proxyBtn = document.getElementById('proxyBtn');
+const proxySwitch = document.getElementById('proxySwitch');
 const testBtn = document.getElementById('testBtn');
 const proxyStatusDot = document.getElementById('proxyStatusDot');
-const logPanel = document.getElementById('logPanel');
-const logBody = document.getElementById('logBody');
-const logToggle = document.getElementById('logToggle');
-const logCloseBtn = document.getElementById('logCloseBtn');
-const logClearBtn = document.getElementById('logClearBtn');
-const logBadge = document.getElementById('logBadge');
 const attachBtn = document.getElementById('attachBtn');
 const fileInput = document.getElementById('fileInput');
 const attachmentPreview = document.getElementById('attachmentPreview');
@@ -703,13 +726,15 @@ const camFlipBtn = document.getElementById('camFlipBtn');
 const camGalleryBtn = document.getElementById('camGalleryBtn');
 const cameraCloseBtn = document.getElementById('cameraCloseBtn');
 
+// ═══════════════════════════════════════════
+// РЕЖИМ
+// ═══════════════════════════════════════════
 function getMode() { try { return localStorage.getItem(MODE_KEY) || 'eco'; } catch { return 'eco'; } }
 function setMode(m) {
   appMode = m;
   try { localStorage.setItem(MODE_KEY, m); } catch {}
   updateModeUI();
   updateAttachButtonState();
-  log('info', `Режим: ${m === 'eco' ? '⚡ Экономный' : '✨ Полный'}`);
 }
 function updateModeUI() {
   document.querySelectorAll('.mode-btn').forEach(b => {
@@ -724,18 +749,57 @@ function modelSupportsImagesInMode(model) {
   return modelSupportsImages(model);
 }
 
+// ═══════════════════════════════════════════
+// ПРОКСИ
+// ═══════════════════════════════════════════
 function getCustomProxy() { try { return localStorage.getItem(PROXY_KEY) || ''; } catch { return ''; } }
 function setCustomProxy(url) {
   try { if (url) localStorage.setItem(PROXY_KEY, url); else localStorage.removeItem(PROXY_KEY); } catch {}
 }
-function updateProxyDot(ok) { proxyStatusDot.classList.toggle('ok', !!ok); }
+function getProxyEnabled() {
+  try {
+    const v = localStorage.getItem(PROXY_ENABLED_KEY);
+    return v === null ? true : v === 'true';
+  } catch { return true; }
+}
+function setProxyEnabled(v) {
+  proxyEnabled = v;
+  try { localStorage.setItem(PROXY_ENABLED_KEY, v ? 'true' : 'false'); } catch {}
+  updateProxySwitchUI();
+  updateProxyDot(false);
+  lastWorkingTransport = null;
+}
+function updateProxySwitchUI() {
+  if (!proxySwitch) return;
+  proxySwitch.classList.toggle('on', proxyEnabled);
+  proxySwitch.querySelector('.label').textContent = proxyEnabled ? 'Вкл' : 'Выкл';
+}
+function updateProxyDot(ok) {
+  if (!proxyStatusDot) return;
+  if (!proxyEnabled) {
+    proxyStatusDot.classList.remove('ok');
+    proxyStatusDot.classList.add('off');
+    return;
+  }
+  proxyStatusDot.classList.remove('off');
+  proxyStatusDot.classList.toggle('ok', !!ok);
+}
 
+// ═══════════════════════════════════════════
+// ТРАНСПОРТЫ
+// ═══════════════════════════════════════════
 function buildTransports(targetUrl) {
   const list = [];
   const custom = getCustomProxy();
-  if (custom) {
-    list.push({ name: 'my-proxy', url: custom.replace(/\/+$/, '') + targetUrl.replace(/^https?:\/\/[^/]+/, '') });
+
+  // Свой прокси — только если тумблер включён
+  if (custom && proxyEnabled) {
+    list.push({
+      name: 'my-proxy',
+      url: custom.replace(/\/+$/, '') + targetUrl.replace(/^https?:\/\/[^/]+/, '')
+    });
   }
+
   list.push({ name: 'direct', url: targetUrl });
   list.push({ name: 'allorigins',  url: 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl) });
   list.push({ name: 'codetabs',    url: 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(targetUrl) });
@@ -743,37 +807,17 @@ function buildTransports(targetUrl) {
   return list;
 }
 
+// Логи — в консоль (UI отключён)
 function log(level, message) {
-  const custom = getCustomProxy();
-  let safeMessage = message;
-  if (custom) {
-    safeMessage = safeMessage.split(custom).join('');
-    try { safeMessage = safeMessage.split(new URL(custom).origin).join(''); } catch {}
-  }
-  safeMessage = safeMessage.replace(/\s+/g, ' ').trim();
-
-  const time = new Date().toLocaleTimeString('ru-RU');
-  logs.push({ time, level, message: safeMessage });
-  if (logs.length > 500) logs = logs.slice(-500);
-
-  const div = document.createElement('div');
-  div.className = `log-entry ${level}`;
-  div.innerHTML = `<span class="log-time">${time}</span><span>${escapeHtml(safeMessage)}</span>`;
-  logBody.appendChild(div);
-  logBody.scrollTop = logBody.scrollHeight;
-
-  if (!logPanelOpen) { unreadLogs++; updateLogBadge(); }
-
   const p = `[AI-Chat][${level.toUpperCase()}]`;
-  if (level === 'error') console.error(p, safeMessage);
-  else if (level === 'warn') console.warn(p, safeMessage);
-  else console.log(p, safeMessage);
-}
-function updateLogBadge() {
-  if (unreadLogs > 0) { logBadge.textContent = unreadLogs > 99 ? '99+' : unreadLogs; logBadge.classList.add('show'); }
-  else logBadge.classList.remove('show');
+  if (level === 'error') console.error(p, message);
+  else if (level === 'warn') console.warn(p, message);
+  else console.log(p, message);
 }
 
+// ═══════════════════════════════════════════
+// УТИЛИТЫ
+// ═══════════════════════════════════════════
 const escapeHtml = (t) => { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; };
 const now = () => new Date().toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
 const scrollBottom = () => { chatMessages.scrollTop = chatMessages.scrollHeight; };
@@ -786,6 +830,9 @@ function makeError(info, responseText) {
 }
 function fmtTokens(n) { return n >= 1000 ? (n/1000).toFixed(1)+'k' : String(n); }
 
+// ═══════════════════════════════════════════
+// API
+// ═══════════════════════════════════════════
 async function apiRequest(payload) {
   const bodyStr = JSON.stringify(payload);
   const all = buildTransports(ENDPOINT);
@@ -875,6 +922,9 @@ function buildMessagesForModel(chat, model) {
   return result;
 }
 
+// ═══════════════════════════════════════════
+// UI СООБЩЕНИЯ
+// ═══════════════════════════════════════════
 function addMessageToDOM(role, content, modelName, time, reasoning, imageData, usage) {
   const msg = document.createElement('div');
   msg.className = `message ${role}`;
@@ -960,6 +1010,9 @@ function addTypingIndicator() {
 }
 function removeTypingIndicator() { const el = document.getElementById('typingIndicator'); if (el) el.remove(); }
 
+// ═══════════════════════════════════════════
+// ХРАНИЛИЩЕ
+// ═══════════════════════════════════════════
 function saveConversations() {
   try {
     const json = JSON.stringify(conversations);
@@ -971,16 +1024,15 @@ function saveConversations() {
 function loadConversations() {
   try {
     let raw = localStorage.getItem(STORAGE_KEY);
-    let source = STORAGE_KEY;
     if (!raw) {
       for (const oldKey of LEGACY_KEYS) {
         const oldRaw = localStorage.getItem(oldKey);
-        if (oldRaw) { raw = oldRaw; source = oldKey; localStorage.setItem(STORAGE_KEY, oldRaw); break; }
+        if (oldRaw) { raw = oldRaw; localStorage.setItem(STORAGE_KEY, oldRaw); break; }
       }
     }
     if (!raw) { try { raw = sessionStorage.getItem(STORAGE_KEY); } catch {} }
-    if (raw) { conversations = JSON.parse(raw); log('success', `Загружено чатов: ${conversations.length} (${source})`); }
-    else { conversations = []; }
+    if (raw) conversations = JSON.parse(raw);
+    else conversations = [];
   } catch (e) { log('error', 'Ошибка загрузки: ' + e.message); conversations = []; }
 }
 
@@ -994,10 +1046,12 @@ function exportHistory() {
     a.download = `ai-chat-history-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    log('success', `Экспортировано ${conversations.length} чатов`);
   } catch (e) { log('error', 'Экспорт: ' + e.message); }
 }
 
+// ═══════════════════════════════════════════
+// ТОКЕНЫ
+// ═══════════════════════════════════════════
 function updateTokensSummary() {
   const chat = getActiveChat();
   if (!chat) { tokensSummary.style.display = 'none'; return; }
@@ -1015,6 +1069,9 @@ function updateTokensSummary() {
   tokensSummary.style.display = 'block';
 }
 
+// ═══════════════════════════════════════════
+// РЕНДЕР
+// ═══════════════════════════════════════════
 function renderChatsList() {
   chatsList.innerHTML = '';
   if (conversations.length === 0) {
@@ -1083,6 +1140,9 @@ function createNewChat() {
   userInput.focus();
 }
 
+// ═══════════════════════════════════════════
+// ФОТО
+// ═══════════════════════════════════════════
 function updateAttachButtonState() {
   const chat = getActiveChat();
   const model = chat?.model || modelSelect.value;
@@ -1104,13 +1164,13 @@ function openCameraModal() {
   const chat = getActiveChat();
   const model = chat?.model || modelSelect.value;
   if (!modelSupportsImagesInMode(model)) {
-    addErrorBlock({ type:'warn', title:'ФОТО ЗАБЛОКИРОВАНО (⚡ ЭКОНОМ)',
+    addErrorBlock({ type:'warn', title:'ФОТО ЗАБЛОКИРОВАНО',
       message:`В экономном режиме ${MODEL_CAPS[model]?.label || model} не принимает изображения.`,
       hint:'Переключись на ✨ Полный режим или выбери 🌀 Mimo-v2.5.' }, null, false, true);
     return;
   }
   cameraModal.classList.add('show');
-  if (!navigator.mediaDevices?.getUserMedia) { log('warn', 'Камера недоступна, открываю галерею'); camGalleryBtn.click(); return; }
+  if (!navigator.mediaDevices?.getUserMedia) { camGalleryBtn.click(); return; }
   startCamera('environment');
 }
 
@@ -1130,9 +1190,7 @@ async function startCamera(facing) {
     cameraVideo.style.display = 'block';
     camPlaceholder.style.display = 'none';
     cameraActive = true;
-    log('success', `Камера запущена (${facing})`);
   } catch (e) {
-    log('error', `Камера недоступна: ${e.message}`);
     camPlaceholder.innerHTML = `Камера недоступна:<br><small>${escapeHtml(e.message)}</small><br><br>Используй 🖼 Галерея`;
     camPlaceholder.style.display = 'block';
     cameraVideo.style.display = 'none';
@@ -1147,7 +1205,7 @@ function stopCamera() {
 function closeCameraModal() { stopCamera(); cameraModal.classList.remove('show'); }
 
 function capturePhoto() {
-  if (!cameraActive || !cameraVideo.videoWidth) { log('warn', 'Камера не активна'); return; }
+  if (!cameraActive || !cameraVideo.videoWidth) return;
   const canvas = cameraCanvas;
   canvas.width = cameraVideo.videoWidth;
   canvas.height = cameraVideo.videoHeight;
@@ -1163,7 +1221,6 @@ function capturePhoto() {
       attachmentThumb.src = ev.target.result;
       attachmentName.textContent = `Фото (${(blob.size / 1024).toFixed(0)} КБ)`;
       attachmentPreview.classList.add('show');
-      log('success', `Фото снято (${(blob.size / 1024).toFixed(0)} КБ)`);
       closeCameraModal();
     };
     reader.readAsDataURL(blob);
@@ -1180,11 +1237,13 @@ function processFile(file) {
     attachmentThumb.src = ev.target.result;
     attachmentName.textContent = `${file.name} (${(file.size / 1024).toFixed(0)} КБ)`;
     attachmentPreview.classList.add('show');
-    log('info', `Прикреплено: ${file.name}`);
   };
   reader.readAsDataURL(file);
 }
 
+// ═══════════════════════════════════════════
+// ОТПРАВКА
+// ═══════════════════════════════════════════
 async function handleSend() {
   const text = userInput.value.trim();
   const hasImage = !!pendingImage;
@@ -1253,12 +1312,15 @@ async function handleSend() {
   }
 }
 
+// ═══════════════════════════════════════════
+// ТЕСТ
+// ═══════════════════════════════════════════
 async function testAllTransports() {
   testBtn.disabled = true;
   testBtn.textContent = '⏳ Тест...';
   const all = buildTransports(ENDPOINT);
-  log('info', `═════ ТЕСТ ${all.length} ТРАНСПОРТОВ ═════`);
   const results = [];
+
   for (const t of all) {
     const t0 = performance.now();
     try {
@@ -1271,19 +1333,17 @@ async function testAllTransports() {
       if (resp.ok) {
         const d = await resp.json();
         const txt = d.choices?.[0]?.message?.content || '';
-        log('success', `✓ [${t.name}] ${resp.status} (${dt}s)`);
         results.push({ name: t.name, ok: true, status: resp.status, time: dt, text: txt });
       } else {
         const errText = await resp.text();
-        log('error', `✗ [${t.name}] ${resp.status} (${dt}s)`);
         results.push({ name: t.name, ok: false, status: resp.status, time: dt, text: errText });
       }
     } catch (e) {
       const dt = ((performance.now() - t0) / 1000).toFixed(2);
-      log('error', `✗ [${t.name}] FAIL (${dt}s): ${e.message}`);
       results.push({ name: t.name, ok: false, status: 0, time: dt, text: e.message });
     }
   }
+
   const okCount = results.filter(r => r.ok).length;
   const okList = results.filter(r => r.ok);
   const block = document.createElement('div');
@@ -1305,19 +1365,27 @@ async function testAllTransports() {
     html += `${r.ok ? '✓' : '✗'} [${r.name}] status=${r.status} ${r.time}s\n`;
   });
   html += `</div>`;
-  if (okCount === 0) html += `<div class="error-hint">💡 Открой ⚙️ и проверь URL прокси</div>`;
+  if (okCount === 0) html += `<div class="error-hint">💡 Открой ⚙️ или включи тумблер прокси</div>`;
   else html += `<div class="error-hint">💡 Транспорт: <b>${okList[0].name}</b></div>`;
   block.innerHTML = html;
   const w = chatMessages.querySelector('.welcome-message');
   if (w) w.remove();
   chatMessages.appendChild(block);
   scrollBottom();
+
   testBtn.disabled = false;
   testBtn.textContent = '🧪 Тест';
 }
 
+// ═══════════════════════════════════════════
+// СОБЫТИЯ
+// ═══════════════════════════════════════════
 document.querySelectorAll('.mode-btn').forEach(btn => {
   btn.addEventListener('click', () => setMode(btn.dataset.mode));
+});
+
+proxySwitch.addEventListener('click', () => {
+  setProxyEnabled(!proxyEnabled);
 });
 
 userInput.addEventListener('input', function() {
@@ -1411,10 +1479,7 @@ proxySaveBtnModal.addEventListener('click', () => {
   if (url) {
     url = url.replace(/\/+$/, '');
     setCustomProxy(url);
-    log('success', '✓ Прокси сохранён');
-  } else {
-    if (!getCustomProxy()) log('info', 'Прокси не задан');
-    else log('info', 'Прокси оставлен без изменений');
+    if (!proxyEnabled) setProxyEnabled(true);
   }
   updateProxyDot(false);
   lastWorkingTransport = null;
@@ -1425,34 +1490,25 @@ proxyClearBtn.addEventListener('click', () => {
   proxyInput.value = '';
   currentProxyBox.textContent = 'Прокси не задан';
   currentProxyBox.classList.add('empty');
+  setProxyEnabled(false);
   lastWorkingTransport = null;
-  updateProxyDot(false);
-  log('info', 'Прокси очищен');
 });
 
-logToggle.addEventListener('click', () => {
-  logPanelOpen = !logPanelOpen;
-  logPanel.classList.toggle('open', logPanelOpen);
-  if (logPanelOpen) { unreadLogs = 0; updateLogBadge(); }
-});
-logCloseBtn.addEventListener('click', () => { logPanelOpen = false; logPanel.classList.remove('open'); });
-logClearBtn.addEventListener('click', () => { logs = []; logBody.innerHTML = ''; unreadLogs = 0; updateLogBadge(); });
-
+// Автосохранение
 window.addEventListener('beforeunload', saveConversations);
 window.addEventListener('pagehide', saveConversations);
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') saveConversations();
 });
 
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
 function init() {
-  log('info', '════════════════════════');
-  log('info', 'AI Чат запущен');
-  log('info', `Платформа: ${navigator.platform || 'unknown'}`);
-  log('info', `Камера API: ${navigator.mediaDevices?.getUserMedia ? 'да' : 'нет'}`);
-
   appMode = getMode();
   updateModeUI();
-  log('info', `Режим: ${appMode === 'eco' ? '⚡ Экономный' : '✨ Полный'}`);
+  proxyEnabled = getProxyEnabled();
+  updateProxySwitchUI();
 
   loadConversations();
   if (conversations.length === 0) createNewChat();
@@ -1463,8 +1519,8 @@ function init() {
   renderChatsList();
   updateAttachButtonState();
   updateTokensSummary();
+  updateProxyDot(false);
   userInput.focus();
-  log('success', `Готово ✓ История: ${conversations.length} чатов`);
 }
 
 window.addEventListener('load', init);

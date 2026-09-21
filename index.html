@@ -2,39 +2,1475 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Chat</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AI Чат • Mimo & GPT-5.6 Luna</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #0b0b0f;
-    --bg2: #131318;
-    --bg3: #1c1c24;
-    --border: #26262f;
-    --text: #e9e9ee;
-    --muted: #8a8a96;
-    --accent: #7c5cff;
-    --accent2: #4a9eff;
-    --user: linear-gradient(135deg, #7c5cff, #4a9eff);
-  }
-  html, body {
-    height: 100%; overflow: hidden;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: var(--bg); color: var(--text);
-  }
-  body { display: flex; }
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI','Inter',system-ui,sans-serif; -webkit-tap-highlight-color:transparent; }
+body {
+  background: radial-gradient(circle at 20% 30%, #0b0d15, #05070c);
+  min-height:100vh; min-height:100dvh;
+  display:flex; align-items:center; justify-content:center;
+  padding:16px; overflow:hidden;
+}
+.app { width:100%; max-width:1280px; height:94vh; height:94dvh; display:flex; gap:16px; }
 
-  /* ===== Сайдбар ===== */
-  .sidebar {
-    width: 240px; background: var(--bg2);
-    border-right: 1px solid var(--border);
-    display: flex; flex-direction: column; flex-shrink: 0;
-    transition: margin-left .25s ease, opacity .25s ease;
+.sidebar {
+  width:260px; flex-shrink:0; background:rgba(14,18,28,0.85);
+  backdrop-filter:blur(18px); border-radius:32px;
+  border:1px solid rgba(120,180,255,0.12);
+  box-shadow:0 20px 50px rgba(0,0,0,0.6);
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.sidebar-header { padding:20px 18px 14px; border-bottom:1px solid rgba(255,255,255,0.05); }
+.new-chat-btn {
+  width:100%; padding:12px 16px; border-radius:16px;
+  border:1px solid rgba(80,150,255,0.3);
+  background:linear-gradient(145deg,#1e3a6b,#16294d);
+  color:#d0e2ff; font-size:0.9rem; font-weight:600; cursor:pointer;
+}
+.new-chat-btn:hover { background:linear-gradient(145deg,#2a4a85,#1c3560); }
+.chats-list { flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:6px; }
+.chats-list::-webkit-scrollbar { width:5px; }
+.chats-list::-webkit-scrollbar-thumb { background:rgba(100,150,255,0.25); border-radius:10px; }
+.chat-item {
+  padding:12px 14px; border-radius:14px; background:rgba(255,255,255,0.02);
+  border:1px solid transparent; cursor:pointer; display:flex;
+  align-items:center; gap:10px; overflow:hidden;
+}
+.chat-item:hover { background:rgba(255,255,255,0.05); border-color:rgba(80,150,255,0.2); }
+.chat-item.active { background:linear-gradient(145deg,rgba(40,80,150,0.4),rgba(25,50,100,0.3)); border-color:rgba(80,150,255,0.5); }
+.chat-item .chat-icon { font-size:1rem; opacity:0.7; }
+.chat-item .chat-info { flex:1; min-width:0; }
+.chat-item .chat-title { font-size:0.85rem; color:#c8d8f0; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.chat-item .chat-preview { font-size:0.7rem; color:#6b7d9c; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:3px; }
+.sidebar-footer { padding:12px 16px 16px; border-top:1px solid rgba(255,255,255,0.05); display:flex; gap:6px; }
+.clear-all-btn {
+  flex:1; padding:8px 10px; border-radius:12px;
+  border:1px solid rgba(255,100,100,0.2);
+  background:rgba(255,80,80,0.08); color:#ff9999;
+  font-size:0.75rem; cursor:pointer;
+}
+.export-btn {
+  padding:8px 10px; border-radius:12px;
+  border:1px solid rgba(80,255,150,0.2);
+  background:rgba(80,255,150,0.08); color:#7affb0;
+  font-size:0.75rem; cursor:pointer;
+}
+
+.chat-container {
+  flex:1; min-width:0; background:rgba(18,22,32,0.85);
+  backdrop-filter:blur(18px); border-radius:42px;
+  border:1px solid rgba(120,180,255,0.15);
+  box-shadow:0 30px 60px rgba(0,0,0,0.7),0 0 40px rgba(0,120,255,0.2);
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.chat-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 22px; border-bottom:1px solid rgba(255,255,255,0.05);
+  background:rgba(10,14,22,0.4); gap:12px; flex-wrap:wrap;
+}
+.logo-area { display:flex; align-items:center; gap:12px; }
+.glow-dot {
+  width:10px; height:10px; background:#3b8eff; border-radius:50%;
+  box-shadow:0 0 15px #3b8eff,0 0 30px #3b8eff; animation:pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:0.8;transform:scale(1);} 50%{opacity:1;transform:scale(1.2);} }
+.chat-header h1 {
+  font-size:1.2rem; font-weight:600;
+  background:linear-gradient(135deg,#fff,#a0c8ff);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.header-controls { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+
+.mode-toggle {
+  display:flex; align-items:center;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:100px; padding:3px;
+}
+.mode-btn {
+  padding:6px 12px; border-radius:100px; border:none;
+  background:transparent; color:#8a9bb5;
+  font-size:0.75rem; font-weight:600; cursor:pointer;
+  transition:all 0.25s; white-space:nowrap;
+}
+.mode-btn.active {
+  background:linear-gradient(145deg,#2b6eff,#1a4bc0);
+  color:white;
+  box-shadow:0 2px 8px rgba(30,100,255,0.4);
+}
+.mode-btn.active.eco {
+  background:linear-gradient(145deg,#1a8f5a,#0f6b40);
+  box-shadow:0 2px 8px rgba(30,200,120,0.4);
+}
+
+.model-selector {
+  display:flex; align-items:center; gap:8px;
+  background:rgba(255,255,255,0.03); padding:5px 8px 5px 14px;
+  border-radius:100px; border:1px solid rgba(255,255,255,0.07);
+}
+.model-selector label { font-size:0.72rem; color:#8a9bb5; text-transform:uppercase; letter-spacing:0.5px; }
+.model-selector select {
+  background:transparent; border:none; color:#d0e2ff;
+  font-size:0.85rem; font-weight:500; padding:5px 8px 5px 4px;
+  cursor:pointer; outline:none;
+}
+.model-selector select option { background:#0f141e; color:#d0e2ff; }
+
+.mini-btn {
+  padding:7px 11px; border-radius:100px;
+  border:1px solid rgba(80,150,255,0.3);
+  background:rgba(80,150,255,0.08); color:#a0c8ff;
+  font-size:0.78rem; font-weight:500; cursor:pointer;
+}
+.mini-btn.green { border-color:rgba(80,255,150,0.3); background:rgba(80,255,150,0.08); color:#7affb0; }
+.mini-btn:disabled { opacity:0.5; cursor:not-allowed; }
+
+.proxy-status-dot {
+  width:10px; height:10px; border-radius:50%;
+  background:#ff5555; box-shadow:0 0 8px #ff5555;
+  flex-shrink:0; transition:all 0.3s; margin-left:4px;
+}
+.proxy-status-dot.ok { background:#4aff8a; box-shadow:0 0 10px #4aff8a; }
+
+.chat-messages {
+  flex:1; overflow-y:auto; padding:22px;
+  display:flex; flex-direction:column; gap:14px; scroll-behavior:smooth;
+}
+.chat-messages::-webkit-scrollbar { width:6px; }
+.chat-messages::-webkit-scrollbar-thumb { background:rgba(100,150,255,0.25); border-radius:10px; }
+.message { display:flex; gap:12px; max-width:85%; animation:fadeIn 0.3s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+.message.user { align-self:flex-end; flex-direction:row-reverse; }
+.message.ai { align-self:flex-start; }
+.avatar {
+  width:34px; height:34px; border-radius:12px; display:flex;
+  align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;
+}
+.message.user .avatar { background:linear-gradient(145deg,#1e3b6b,#0f2340); border:1px solid rgba(80,150,255,0.5); }
+.message.ai .avatar { background:linear-gradient(145deg,#2a1f4a,#1a1230); border:1px solid rgba(160,100,255,0.5); }
+.bubble {
+  padding:12px 16px; border-radius:20px; font-size:0.93rem;
+  line-height:1.6; word-break:break-word;
+}
+.message.user .bubble {
+  background:linear-gradient(135deg,#1b3a5c,#112438);
+  border:1px solid rgba(80,150,255,0.2); color:#e6f0ff;
+  border-bottom-right-radius:6px;
+}
+.message.ai .bubble {
+  background:rgba(30,35,55,0.7); border:1px solid rgba(160,120,255,0.2);
+  color:#e8eaff; border-bottom-left-radius:6px;
+}
+.sender-name { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.5px; opacity:0.6; margin-bottom:4px; font-weight:600; }
+.message.user .sender-name { color:#9ac2ff; text-align:right; }
+.message.ai .sender-name { color:#c9a0ff; }
+.timestamp { font-size:0.63rem; opacity:0.4; margin-top:5px; text-align:right; }
+
+.bubble-image {
+  max-width:100%; max-height:280px; border-radius:12px;
+  margin-top:6px; display:block; cursor:pointer;
+  border:1px solid rgba(255,255,255,0.1);
+}
+
+.tokens-line {
+  font-size:0.68rem; color:#8aa8d8; opacity:0.9;
+  margin-top:6px; padding-top:6px;
+  border-top:1px dashed rgba(160,120,255,0.2);
+  font-family:'SF Mono','Consolas',monospace;
+}
+
+.reasoning-box {
+  margin-top:8px; padding:8px 12px;
+  background:rgba(160,120,255,0.08);
+  border-left:3px solid rgba(160,120,255,0.5);
+  border-radius:8px; font-size:0.78rem; color:#c9a0ff;
+  font-style:italic; line-height:1.5;
+}
+.reasoning-box summary { cursor:pointer; font-weight:600; font-style:normal; }
+
+.typing-indicator {
+  display:flex; gap:6px; padding:12px 20px;
+  background:rgba(30,35,55,0.7); border-radius:22px;
+  border-bottom-left-radius:6px; width:fit-content;
+  border:1px solid rgba(160,120,255,0.15);
+}
+.typing-indicator span {
+  width:8px; height:8px; background:#8899cc; border-radius:50%;
+  animation:typing 1.4s infinite;
+}
+.typing-indicator span:nth-child(2) { animation-delay:0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay:0.4s; }
+@keyframes typing { 0%,60%,100%{opacity:0.2;transform:translateY(0);} 30%{opacity:1;transform:translateY(-6px);} }
+
+.error-block {
+  max-width:90%; background:linear-gradient(145deg,rgba(60,15,20,0.6),rgba(40,10,15,0.5));
+  border:1px solid rgba(255,80,80,0.4); border-radius:18px;
+  padding:14px 18px; display:flex; flex-direction:column; gap:8px;
+}
+.error-block.ok {
+  background:linear-gradient(145deg,rgba(20,60,30,0.6),rgba(15,40,20,0.5));
+  border-color:rgba(80,255,150,0.4);
+}
+.error-block.warn-block {
+  background:linear-gradient(145deg,rgba(60,45,15,0.6),rgba(40,30,10,0.5));
+  border-color:rgba(255,180,60,0.4);
+}
+.error-header { display:flex; align-items:center; gap:8px; font-weight:700; color:#ff8888; font-size:0.88rem; flex-wrap:wrap; }
+.error-block.ok .error-header { color:#7affb0; }
+.error-block.warn-block .error-header { color:#ffcc66; }
+.error-code-badge {
+  display:inline-flex; padding:3px 10px; border-radius:8px;
+  font-size:0.68rem; font-weight:700;
+  font-family:'SF Mono','Consolas',monospace; text-transform:uppercase;
+}
+.error-code-badge.http { background:rgba(255,100,100,0.25); color:#ff9999; }
+.error-code-badge.network { background:rgba(255,180,60,0.25); color:#ffcc66; }
+.error-code-badge.auth { background:rgba(255,60,60,0.3); color:#ff6666; }
+.error-code-badge.unknown { background:rgba(150,150,150,0.25); color:#ccc; }
+.error-code-badge.success { background:rgba(80,255,150,0.2); color:#7affb0; }
+.error-code-badge.warn { background:rgba(255,180,60,0.25); color:#ffcc66; }
+.error-text { color:#ffcccc; font-size:0.83rem; line-height:1.5; }
+.error-block.ok .error-text { color:#c8ffd8; }
+.error-block.warn-block .error-text { color:#ffe4b0; }
+.error-details {
+  color:#b09090; font-size:0.7rem; font-family:'SF Mono','Consolas',monospace;
+  background:rgba(0,0,0,0.3); padding:8px 10px; border-radius:10px;
+  max-height:200px; overflow-y:auto; white-space:pre-wrap;
+  word-break:break-word; border:1px solid rgba(255,80,80,0.15);
+}
+.error-hint {
+  color:#ffcc99; font-size:0.73rem; padding:8px 10px;
+  background:rgba(255,180,60,0.1);
+  border-left:3px solid rgba(255,180,60,0.6);
+  border-radius:6px; line-height:1.5;
+}
+
+.chat-input-area {
+  padding:14px 20px 18px; background:rgba(8,12,20,0.6);
+  border-top:1px solid rgba(255,255,255,0.04);
+  display:flex; flex-direction:column; gap:8px;
+}
+.attachment-preview {
+  display:none; align-items:center; gap:10px;
+  padding:8px 10px; border-radius:12px;
+  background:rgba(80,150,255,0.08);
+  border:1px solid rgba(80,150,255,0.25);
+  width:fit-content; max-width:100%;
+}
+.attachment-preview.show { display:flex; }
+.attachment-preview img {
+  width:44px; height:44px; object-fit:cover;
+  border-radius:8px; border:1px solid rgba(255,255,255,0.1);
+}
+.attachment-preview .attach-info {
+  font-size:0.75rem; color:#a0c8ff;
+  max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.attachment-preview .attach-remove {
+  width:22px; height:22px; border-radius:6px;
+  border:none; background:rgba(255,80,80,0.2);
+  color:#ff9999; font-size:0.75rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+}
+
+.input-row { display:flex; gap:10px; align-items:flex-end; }
+.attach-btn {
+  width:44px; height:44px; border-radius:50%;
+  border:1px solid rgba(80,150,255,0.3);
+  background:rgba(80,150,255,0.08); color:#a0c8ff;
+  font-size:1.1rem; cursor:pointer; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.attach-btn.disabled {
+  opacity:0.35; cursor:not-allowed;
+  border-color:rgba(255,100,100,0.3);
+  background:rgba(255,80,80,0.08);
+  color:#ff9999;
+}
+
+.chat-input-area textarea {
+  flex:1; background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.08); border-radius:24px;
+  padding:12px 20px; font-size:0.93rem; color:#eef4ff;
+  resize:none; outline:none; font-family:inherit;
+  line-height:1.5; max-height:120px;
+}
+.chat-input-area textarea:focus {
+  border-color:rgba(80,150,255,0.5);
+  background:rgba(255,255,255,0.06);
+}
+.send-btn {
+  width:46px; height:46px; border-radius:50%; border:none;
+  background:linear-gradient(145deg,#2b6eff,#1a4bc0);
+  color:white; font-size:1.15rem; cursor:pointer;
+  box-shadow:0 8px 18px rgba(30,100,255,0.3); flex-shrink:0;
+}
+.send-btn:disabled { opacity:0.4; cursor:not-allowed; }
+
+.welcome-message { text-align:center; color:#6b7d9c; font-size:0.85rem; padding:20px 10px; }
+.welcome-message strong { color:#9ab4e0; font-weight:500; }
+
+.log-panel {
+  position:fixed; right:16px; bottom:16px; width:460px; max-height:50vh;
+  background:rgba(10,14,22,0.97); backdrop-filter:blur(18px);
+  border:1px solid rgba(120,180,255,0.2); border-radius:20px;
+  box-shadow:0 20px 50px rgba(0,0,0,0.8);
+  display:flex; flex-direction:column; z-index:200;
+  transform:translateY(calc(100% + 20px));
+  transition:transform 0.35s cubic-bezier(0.4,0,0.2,1); overflow:hidden;
+}
+.log-panel.open { transform:translateY(0); }
+.log-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06);
+  background:rgba(255,255,255,0.02);
+}
+.log-header-title { display:flex; align-items:center; gap:8px; font-size:0.82rem; font-weight:600; color:#a0c0ff; text-transform:uppercase; }
+.log-header-title .dot { width:8px; height:8px; border-radius:50%; background:#4aff8a; box-shadow:0 0 10px #4aff8a; animation:pulse 2s infinite; }
+.log-actions { display:flex; gap:6px; }
+.log-btn {
+  width:26px; height:26px; border-radius:8px;
+  border:1px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.03); color:#8a9bb5;
+  font-size:0.75rem; cursor:pointer;
+}
+.log-body {
+  flex:1; overflow-y:auto; padding:8px 12px;
+  font-family:'SF Mono','Consolas',monospace; font-size:0.7rem;
+  line-height:1.5; display:flex; flex-direction:column; gap:2px;
+}
+.log-body::-webkit-scrollbar { width:5px; }
+.log-body::-webkit-scrollbar-thumb { background:rgba(100,150,255,0.3); border-radius:10px; }
+.log-entry { padding:3px 6px; border-radius:5px; word-break:break-word; display:flex; gap:8px; }
+.log-entry .log-time { color:#5a6b85; flex-shrink:0; }
+.log-entry.info { color:#8ab4ff; }
+.log-entry.success { color:#6dffa8; }
+.log-entry.warn { color:#ffcc66; }
+.log-entry.error { color:#ff8080; background:rgba(255,60,60,0.08); }
+.log-entry.request { color:#c9a0ff; }
+.log-entry.response { color:#a0ffd4; }
+.log-toggle {
+  position:fixed; right:20px; bottom:20px; width:50px; height:50px;
+  border-radius:50%; border:1px solid rgba(80,150,255,0.4);
+  background:linear-gradient(145deg,#1a2c4d,#0f1a30);
+  color:#a0c8ff; font-size:1.15rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 10px 30px rgba(0,0,0,0.6); z-index:199;
+}
+.log-toggle .badge {
+  position:absolute; top:-4px; right:-4px; min-width:20px; height:20px;
+  padding:0 6px; border-radius:10px;
+  background:linear-gradient(145deg,#ff4d4d,#c42020);
+  color:white; font-size:0.65rem; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+  transform:scale(0); transition:transform 0.2s;
+}
+.log-toggle .badge.show { transform:scale(1); }
+
+.menu-toggle {
+  display:none; width:38px; height:38px; border-radius:12px;
+  border:1px solid rgba(80,150,255,0.3);
+  background:rgba(255,255,255,0.03); color:#a0c0ff;
+  font-size:1rem; cursor:pointer;
+}
+.overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99; }
+.overlay.show { display:block; }
+
+.img-viewer {
+  position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:500;
+  display:none; align-items:center; justify-content:center; padding:20px;
+  cursor:zoom-out;
+}
+.img-viewer.show { display:flex; }
+.img-viewer img { max-width:100%; max-height:100%; border-radius:12px; }
+
+.modal-backdrop {
+  position:fixed; inset:0; background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(6px); z-index:300;
+  display:none; align-items:center; justify-content:center; padding:16px;
+}
+.modal-backdrop.show { display:flex; }
+.modal {
+  width:100%; max-width:520px; background:rgba(14,18,28,0.98);
+  border:1px solid rgba(120,180,255,0.3); border-radius:24px;
+  box-shadow:0 30px 80px rgba(0,0,0,0.9);
+  padding:24px; display:flex; flex-direction:column; gap:14px;
+}
+.modal h2 { font-size:1.1rem; font-weight:600; color:#d0e2ff; display:flex; align-items:center; gap:8px; }
+.modal p { font-size:0.83rem; color:#8a9bb5; line-height:1.5; }
+.modal input {
+  width:100%; padding:12px 16px; border-radius:14px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.1);
+  color:#eef4ff; font-size:0.88rem; outline:none;
+  font-family:'SF Mono','Consolas',monospace;
+}
+.modal-buttons { display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
+.modal-btn {
+  padding:10px 18px; border-radius:12px; border:none;
+  font-size:0.85rem; font-weight:600; cursor:pointer;
+}
+.modal-btn.primary { background:linear-gradient(145deg,#2b6eff,#1a4bc0); color:white; }
+.modal-btn.ghost { background:rgba(255,255,255,0.05); color:#a0c8ff; border:1px solid rgba(255,255,255,0.1); }
+.modal-btn.danger { background:rgba(255,80,80,0.15); color:#ff9999; border:1px solid rgba(255,80,80,0.3); }
+.current-proxy {
+  padding:10px 14px; border-radius:12px;
+  background:rgba(80,255,150,0.08); border:1px solid rgba(80,255,150,0.25);
+  color:#7affb0; font-size:0.83rem;
+  text-align:center; font-weight:600;
+}
+.current-proxy.empty {
+  background:rgba(255,180,60,0.08); border-color:rgba(255,180,60,0.25); color:#ffcc66;
+}
+
+.camera-modal {
+  width:100%; max-width:600px; background:rgba(14,18,28,0.98);
+  border:1px solid rgba(120,180,255,0.3); border-radius:24px;
+  box-shadow:0 30px 80px rgba(0,0,0,0.9);
+  padding:20px; display:flex; flex-direction:column; gap:14px;
+  max-height:90vh; overflow:auto;
+}
+.camera-modal h2 { font-size:1.1rem; font-weight:600; color:#d0e2ff; display:flex; align-items:center; gap:8px; }
+.camera-view {
+  position:relative; width:100%; background:#000;
+  border-radius:16px; overflow:hidden; aspect-ratio:4/3;
+  display:flex; align-items:center; justify-content:center;
+}
+.camera-view video { width:100%; height:100%; object-fit:cover; display:block; }
+.camera-view canvas { display:none; }
+.camera-view .cam-placeholder { color:#6b7d9c; font-size:0.85rem; text-align:center; padding:20px; }
+.camera-controls { display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap; }
+.cam-btn {
+  padding:12px 20px; border-radius:14px;
+  border:1px solid rgba(80,150,255,0.3);
+  background:rgba(80,150,255,0.1); color:#a0c8ff;
+  font-size:0.88rem; font-weight:600; cursor:pointer;
+  display:flex; align-items:center; gap:8px;
+}
+.cam-btn.shutter {
+  width:64px; height:64px; border-radius:50%;
+  background:linear-gradient(145deg,#2b6eff,#1a4bc0);
+  border:4px solid rgba(255,255,255,0.25);
+  padding:0; justify-content:center;
+}
+.cam-btn.shutter::before {
+  content:''; width:26px; height:26px; border-radius:50%;
+  background:white; display:block;
+}
+.cam-btn.flip { width:52px; height:52px; border-radius:50%; padding:0; justify-content:center; font-size:1.2rem; }
+.cam-btn.ghost { background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.1); color:#a0c8ff; }
+
+.tokens-summary {
+  font-size:0.72rem; color:#8aa8d8;
+  padding:8px 12px; text-align:center;
+  background:rgba(80,150,255,0.06);
+  border-top:1px solid rgba(80,150,255,0.15);
+  font-family:'SF Mono','Consolas',monospace;
+}
+
+@media (max-width:820px) {
+  .app { gap:0; }
+  .sidebar { position:fixed; left:0; top:0; bottom:0; width:260px; z-index:100; transform:translateX(-105%); transition:transform 0.3s; }
+  .sidebar.open { transform:translateX(0); }
+  .menu-toggle { display:flex; }
+  .log-panel { width:calc(100% - 32px); right:16px; left:16px; }
+  .chat-header { padding:10px 14px; }
+  .chat-header h1 { font-size:1rem; }
+  .mini-btn { padding:5px 8px; font-size:0.7rem; }
+  .mode-btn { padding:5px 8px; font-size:0.68rem; }
+  .chat-messages { padding:14px; }
+  .chat-input-area { padding:10px 12px 14px; }
+  .bubble { font-size:0.9rem; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="overlay" id="overlay"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <button class="new-chat-btn" id="newChatBtn">＋ Новый чат</button>
+    </div>
+    <div class="chats-list" id="chatsList"></div>
+    <div class="sidebar-footer">
+      <button class="export-btn" id="exportBtn" title="Экспорт истории">💾</button>
+      <button class="clear-all-btn" id="clearAllBtn">🗑 Удалить все</button>
+    </div>
+  </aside>
+
+  <main class="chat-container">
+    <div class="chat-header">
+      <div class="logo-area">
+        <button class="menu-toggle" id="menuToggle">☰</button>
+        <div class="glow-dot"></div>
+        <h1 id="chatTitle">AI Чат</h1>
+      </div>
+      <div class="header-controls">
+        <div class="mode-toggle" id="modeToggle">
+          <button class="mode-btn eco active" data-mode="eco" title="Фото только через Mimo">⚡ Эконом</button>
+          <button class="mode-btn" data-mode="full" title="Фото в любую модель">✨ Полный</button>
+        </div>
+        <div class="model-selector">
+          <label>Модель</label>
+          <select id="modelSelect">
+            <option value="mimo-v2.5" selected>🌀 Mimo-v2.5 · 📷</option>
+            <option value="gpt-5.6-luna">🌙 GPT-5.6 Luna</option>
+          </select>
+        </div>
+        <button class="mini-btn" id="proxyBtn" title="Настройки прокси">⚙️</button>
+        <span class="proxy-status-dot" id="proxyStatusDot"></span>
+        <button class="mini-btn green" id="testBtn">🧪 Тест</button>
+      </div>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+      <div class="welcome-message">
+        <strong>Добро пожаловать!</strong><br>
+        ⚡ Эконом — фото только Mimo · ✨ Полный — фото везде<br>
+        История сохраняется автоматически 💾
+      </div>
+    </div>
+
+    <div class="tokens-summary" id="tokensSummary" style="display:none;"></div>
+
+    <div class="chat-input-area">
+      <div class="attachment-preview" id="attachmentPreview">
+        <img id="attachmentThumb" src="" alt="">
+        <span class="attach-info" id="attachmentName"></span>
+        <button class="attach-remove" id="attachmentRemove">✕</button>
+      </div>
+      <div class="input-row">
+        <button class="attach-btn" id="attachBtn" title="Фото">📎</button>
+        <input type="file" id="fileInput" accept="image/*" style="display:none;">
+        <textarea id="userInput" rows="1" placeholder="Напишите сообщение..."></textarea>
+        <button class="send-btn" id="sendBtn">➤</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<button class="log-toggle" id="logToggle">📋<span class="badge" id="logBadge">0</span></button>
+
+<div class="log-panel" id="logPanel">
+  <div class="log-header">
+    <div class="log-header-title"><span class="dot"></span> Логи</div>
+    <div class="log-actions">
+      <button class="log-btn" id="logClearBtn">🗑</button>
+      <button class="log-btn" id="logCloseBtn">✕</button>
+    </div>
+  </div>
+  <div class="log-body" id="logBody"></div>
+</div>
+
+<div class="img-viewer" id="imgViewer"><img id="imgViewerContent" src=""></div>
+
+<div class="modal-backdrop" id="proxyModal">
+  <div class="modal">
+    <h2>⚙️ Настройки прокси</h2>
+    <p>Введи URL своего прокси-воркера. Адрес нигде не отображается и хранится только на этом устройстве.</p>
+    <div id="currentProxyBox" class="current-proxy empty">Прокси не задан</div>
+    <input type="text" id="proxyInput" placeholder="https://..." autocomplete="off">
+    <div class="modal-buttons">
+      <button class="modal-btn danger" id="proxyClearBtn">Очистить</button>
+      <button class="modal-btn ghost" id="proxyCancelBtn">Отмена</button>
+      <button class="modal-btn primary" id="proxySaveBtnModal">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="cameraModal">
+  <div class="camera-modal">
+    <h2>📷 Фото</h2>
+    <div class="camera-view" id="cameraView">
+      <video id="cameraVideo" autoplay playsinline muted></video>
+      <canvas id="cameraCanvas"></canvas>
+      <div class="cam-placeholder" id="camPlaceholder">Камера не активна</div>
+    </div>
+    <div class="camera-controls">
+      <button class="cam-btn ghost" id="camGalleryBtn">🖼 Галерея</button>
+      <button class="cam-btn shutter" id="camShutterBtn"></button>
+      <button class="cam-btn flip" id="camFlipBtn">🔄</button>
+    </div>
+    <div class="modal-buttons">
+      <button class="modal-btn ghost" id="cameraCloseBtn">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_KEY = 'sk-cvc-100dd2c5aa3bdf9418763e3af2be2e45041e7ef08c6293dffc5a3916b73d51b1';
+const UPSTREAM = 'https://shprotoness-ai.jq9gfk.workers.dev/v1';
+const ENDPOINT = `${UPSTREAM}/chat/completions`;
+const PROXY_KEY = 'ai_proxy_url';
+const MODE_KEY = 'ai_chat_mode';
+
+const STORAGE_KEY = 'ai_chat_history_v1';
+const LEGACY_KEYS = ['ai_chats_v1','ai_chats_v2','ai_chats_v3','ai_chats_v4','ai_chats_v5'];
+
+const MAX_IMG_SIZE = 5 * 1024 * 1024;
+
+// 💰 ЦЕНЫ: 1.45 ₽ за 200 000 тарифных токенов
+const PRICE_BLOCK = 1.45;
+const BLOCK_SIZE = 200000;
+
+// Коэффициенты моделей (тарифных токенов за 1 реальный)
+const MODEL_COEF = {
+  'mimo-v2.5':    0.05,
+  'gpt-5.6-luna': 0.33
+};
+
+function calcCost(model, totalTokens) {
+  const coef = MODEL_COEF[model] ?? 0;
+  const tarifTokens = totalTokens * coef;
+  return (tarifTokens / BLOCK_SIZE) * PRICE_BLOCK;
+}
+
+function fmtCost(v) {
+  if (v <= 0) return '0 ₽';
+  if (v < 0.0001) return '< 0.0001 ₽';
+  if (v < 0.001)  return v.toFixed(5) + ' ₽';
+  if (v < 0.01)   return v.toFixed(4) + ' ₽';
+  if (v < 1)      return v.toFixed(3) + ' ₽';
+  return v.toFixed(2) + ' ₽';
+}
+
+const MODEL_CAPS = {
+  'mimo-v2.5':    { images: true,  label: '🌀 Mimo-v2.5' },
+  'gpt-5.6-luna': { images: false, label: '🌙 GPT-5.6 Luna' }
+};
+function modelSupportsImages(m) { return !!(MODEL_CAPS[m]?.images); }
+
+let conversations = [];
+let activeChatId = null;
+let isLoading = false;
+let logs = [];
+let unreadLogs = 0;
+let logPanelOpen = false;
+let lastWorkingTransport = null;
+let pendingImage = null;
+let appMode = 'eco';
+
+let cameraStream = null;
+let currentFacing = 'environment';
+let cameraActive = false;
+
+const chatMessages = document.getElementById('chatMessages');
+const userInput = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
+const modelSelect = document.getElementById('modelSelect');
+const chatsList = document.getElementById('chatsList');
+const newChatBtn = document.getElementById('newChatBtn');
+const clearAllBtn = document.getElementById('clearAllBtn');
+const exportBtn = document.getElementById('exportBtn');
+const chatTitle = document.getElementById('chatTitle');
+const sidebar = document.getElementById('sidebar');
+const overlay = document.getElementById('overlay');
+const menuToggle = document.getElementById('menuToggle');
+const proxyBtn = document.getElementById('proxyBtn');
+const testBtn = document.getElementById('testBtn');
+const proxyStatusDot = document.getElementById('proxyStatusDot');
+const logPanel = document.getElementById('logPanel');
+const logBody = document.getElementById('logBody');
+const logToggle = document.getElementById('logToggle');
+const logCloseBtn = document.getElementById('logCloseBtn');
+const logClearBtn = document.getElementById('logClearBtn');
+const logBadge = document.getElementById('logBadge');
+const attachBtn = document.getElementById('attachBtn');
+const fileInput = document.getElementById('fileInput');
+const attachmentPreview = document.getElementById('attachmentPreview');
+const attachmentThumb = document.getElementById('attachmentThumb');
+const attachmentName = document.getElementById('attachmentName');
+const attachmentRemove = document.getElementById('attachmentRemove');
+const imgViewer = document.getElementById('imgViewer');
+const imgViewerContent = document.getElementById('imgViewerContent');
+const tokensSummary = document.getElementById('tokensSummary');
+
+const proxyModal = document.getElementById('proxyModal');
+const proxyInput = document.getElementById('proxyInput');
+const proxySaveBtnModal = document.getElementById('proxySaveBtnModal');
+const proxyClearBtn = document.getElementById('proxyClearBtn');
+const proxyCancelBtn = document.getElementById('proxyCancelBtn');
+const currentProxyBox = document.getElementById('currentProxyBox');
+
+const cameraModal = document.getElementById('cameraModal');
+const cameraVideo = document.getElementById('cameraVideo');
+const cameraCanvas = document.getElementById('cameraCanvas');
+const camPlaceholder = document.getElementById('camPlaceholder');
+const camShutterBtn = document.getElementById('camShutterBtn');
+const camFlipBtn = document.getElementById('camFlipBtn');
+const camGalleryBtn = document.getElementById('camGalleryBtn');
+const cameraCloseBtn = document.getElementById('cameraCloseBtn');
+
+function getMode() { try { return localStorage.getItem(MODE_KEY) || 'eco'; } catch { return 'eco'; } }
+function setMode(m) {
+  appMode = m;
+  try { localStorage.setItem(MODE_KEY, m); } catch {}
+  updateModeUI();
+  updateAttachButtonState();
+  log('info', `Режим: ${m === 'eco' ? '⚡ Экономный' : '✨ Полный'}`);
+}
+function updateModeUI() {
+  document.querySelectorAll('.mode-btn').forEach(b => {
+    const isActive = b.dataset.mode === appMode;
+    b.classList.toggle('active', isActive);
+    if (isActive && appMode === 'eco') b.classList.add('eco');
+    else b.classList.remove('eco');
+  });
+}
+function modelSupportsImagesInMode(model) {
+  if (appMode === 'full') return true;
+  return modelSupportsImages(model);
+}
+
+function getCustomProxy() { try { return localStorage.getItem(PROXY_KEY) || ''; } catch { return ''; } }
+function setCustomProxy(url) {
+  try { if (url) localStorage.setItem(PROXY_KEY, url); else localStorage.removeItem(PROXY_KEY); } catch {}
+}
+function updateProxyDot(ok) { proxyStatusDot.classList.toggle('ok', !!ok); }
+
+function buildTransports(targetUrl) {
+  const list = [];
+  const custom = getCustomProxy();
+  if (custom) {
+    list.push({ name: 'my-proxy', url: custom.replace(/\/+$/, '') + targetUrl.replace(/^https?:\/\/[^/]+/, '') });
   }
-  body.sidebar-hidden .sidebar {
-    margin-left: -240px;
-    opacity: 0;
-    pointer-events: none;
+  list.push({ name: 'direct', url: targetUrl });
+  list.push({ name: 'allorigins',  url: 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl) });
+  list.push({ name: 'codetabs',    url: 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(targetUrl) });
+  list.push({ name: 'cors.eu.org', url: 'https://cors.eu.org/' + targetUrl });
+  return list;
+}
+
+function log(level, message) {
+  const custom = getCustomProxy();
+  let safeMessage = message;
+  if (custom) {
+    safeMessage = safeMessage.split(custom).join('');
+    try { safeMessage = safeMessage.split(new URL(custom).origin).join(''); } catch {}
+  }
+  safeMessage = safeMessage.replace(/\s+/g, ' ').trim();
+
+  const time = new Date().toLocaleTimeString('ru-RU');
+  logs.push({ time, level, message: safeMessage });
+  if (logs.length > 500) logs = logs.slice(-500);
+
+  const div = document.createElement('div');
+  div.className = `log-entry ${level}`;
+  div.innerHTML = `<span class="log-time">${time}</span><span>${escapeHtml(safeMessage)}</span>`;
+  logBody.appendChild(div);
+  logBody.scrollTop = logBody.scrollHeight;
+
+  if (!logPanelOpen) { unreadLogs++; updateLogBadge(); }
+
+  const p = `[AI-Chat][${level.toUpperCase()}]`;
+  if (level === 'error') console.error(p, safeMessage);
+  else if (level === 'warn') console.warn(p, safeMessage);
+  else console.log(p, safeMessage);
+}
+function updateLogBadge() {
+  if (unreadLogs > 0) { logBadge.textContent = unreadLogs > 99 ? '99+' : unreadLogs; logBadge.classList.add('show'); }
+  else logBadge.classList.remove('show');
+}
+
+const escapeHtml = (t) => { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; };
+const now = () => new Date().toLocaleTimeString('ru-RU', { hour:'2-digit', minute:'2-digit' });
+const scrollBottom = () => { chatMessages.scrollTop = chatMessages.scrollHeight; };
+const genId = () => 'chat_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+const getActiveChat = () => conversations.find(c => c.id === activeChatId);
+
+function makeError(info, responseText) {
+  const e = new Error(info.message);
+  e._classified = info; e._responseText = responseText; return e;
+}
+function fmtTokens(n) { return n >= 1000 ? (n/1000).toFixed(1)+'k' : String(n); }
+
+async function apiRequest(payload) {
+  const bodyStr = JSON.stringify(payload);
+  const all = buildTransports(ENDPOINT);
+  let order = all;
+  if (lastWorkingTransport) {
+    const found = all.find(t => t.name === lastWorkingTransport);
+    if (found) order = [found, ...all.filter(t => t.name !== lastWorkingTransport)];
+  }
+
+  for (const t of order) {
+    const t0 = performance.now();
+    log('request', `[${t.name}] POST chat/completions`);
+    try {
+      const resp = await fetch(t.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API_KEY}` },
+        body: bodyStr
+      });
+      const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+      log('response', `[${t.name}] ← ${resp.status} ${resp.statusText} (${elapsed}s)`);
+
+      if (resp.status === 401 || resp.status === 403) {
+        const text = await resp.text();
+        throw makeError({ type:'auth', title:`HTTP ${resp.status}`, code: resp.status,
+          message:`Ключ отвергнут (${resp.status}).`, hint:'Проверь API_KEY.' }, text);
+      }
+      if (!resp.ok) {
+        const text = await resp.text();
+        if (resp.status >= 500) { log('warn', `[${t.name}] ${resp.status}, пробую следующий...`); continue; }
+        throw makeError({ type:'http', title:`HTTP ${resp.status}`, code: resp.status,
+          message:`Сервер вернул ${resp.status}.`, hint:'Смотри тело ниже.' }, text);
+      }
+
+      const data = await resp.json();
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) {
+        throw makeError({ type:'unknown', title:'EMPTY RESPONSE', code:'NO_CONTENT',
+          message:'Ответ без content.', hint:'Сырой ответ в логах.' }, JSON.stringify(data, null, 2));
+      }
+      lastWorkingTransport = t.name;
+      updateProxyDot(true);
+      log('success', `[${t.name}] ✓ Ответ (${content.length} симв.)`);
+
+      return {
+        content,
+        reasoning: data.choices[0].message.reasoning_content || null,
+        model: data.model || payload.model,
+        transport: t.name,
+        usage: data.usage || null
+      };
+    } catch (err) {
+      const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+      if (err._classified && err._classified.type !== 'network') {
+        log('error', `[${t.name}] ✗ ${err._classified.title} (${elapsed}s)`);
+        throw err;
+      }
+      log('warn', `[${t.name}] ✗ ${err.message} (${elapsed}s)`);
+    }
+  }
+  updateProxyDot(false);
+  throw makeError({ type:'network', title:'ВСЕ ТРАНСПОРТЫ УПАЛИ', code:'ALL_FAILED',
+    message:'Ни один транспорт не сработал.', hint:'Проверь настройки прокси ⚙️' }, null);
+}
+
+function buildMessagesForModel(chat, model) {
+  const supportsImg = appMode === 'full' ? true : modelSupportsImages(model);
+  const result = [];
+  chat.messages
+    .filter(m => m.role === 'user' || m.role === 'assistant')
+    .forEach(m => {
+      if (m.role === 'user' && m.image) {
+        if (supportsImg) {
+          result.push({ role:'user', content: [
+            { type:'text', text: m.content || 'Что на фото?' },
+            { type:'image_url', image_url: { url: m.image } }
+          ]});
+        } else {
+          const placeholder = m.content
+            ? `${m.content}\n[Изображение недоступно в этой модели]`
+            : '[Пользователь отправлял изображение — недоступно в этой модели]';
+          result.push({ role:'user', content: placeholder });
+        }
+      } else {
+        result.push({ role: m.role, content: m.content });
+      }
+    });
+  return result;
+}
+
+function addMessageToDOM(role, content, modelName, time, reasoning, imageData, usage) {
+  const msg = document.createElement('div');
+  msg.className = `message ${role}`;
+  const av = document.createElement('div');
+  av.className = 'avatar';
+  av.textContent = role === 'user' ? '🧑' : '🤖';
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  const nameEl = document.createElement('div');
+  nameEl.className = 'sender-name';
+  nameEl.textContent = role === 'user' ? 'Вы' : (modelName || 'AI');
+  bubble.appendChild(nameEl);
+
+  if (imageData) {
+    const img = document.createElement('img');
+    img.className = 'bubble-image';
+    img.src = imageData;
+    img.addEventListener('click', () => { imgViewerContent.src = imageData; imgViewer.classList.add('show'); });
+    bubble.appendChild(img);
+  }
+  if (content) {
+    const textEl = document.createElement('div');
+    textEl.innerHTML = escapeHtml(content).replace(/\n/g, '<br>');
+    bubble.appendChild(textEl);
+  }
+  if (reasoning) {
+    const details = document.createElement('details');
+    details.className = 'reasoning-box';
+    details.innerHTML = `<summary>💭 Размышления модели</summary><div>${escapeHtml(reasoning).replace(/\n/g,'<br>')}</div>`;
+    bubble.appendChild(details);
+  }
+  if (usage) {
+    const tokensEl = document.createElement('div');
+    tokensEl.className = 'tokens-line';
+    const p = usage.prompt_tokens || 0;
+    const c = usage.completion_tokens || 0;
+    const t = usage.total_tokens || (p + c);
+    const cost = calcCost(modelName, t);
+    const coef = MODEL_COEF[modelName] ?? 0;
+    tokensEl.innerHTML = `🎫 ${fmtTokens(t)} ток. · ×${coef} · <b style="color:#ffd47a">💰 ${fmtCost(cost)}</b>`;
+    bubble.appendChild(tokensEl);
+  }
+  const timeEl = document.createElement('div');
+  timeEl.className = 'timestamp';
+  timeEl.textContent = time || now();
+  bubble.appendChild(timeEl);
+
+  msg.appendChild(av);
+  msg.appendChild(bubble);
+
+  const w = chatMessages.querySelector('.welcome-message');
+  if (w) w.remove();
+  chatMessages.appendChild(msg);
+  scrollBottom();
+}
+
+function addErrorBlock(info, responseText, ok = false, warn = false) {
+  const block = document.createElement('div');
+  block.className = 'error-block' + (ok ? ' ok' : '') + (warn ? ' warn-block' : '');
+  const icon = ok ? '✅' : '⚠️';
+  let html = `<div class="error-header">
+    <span>${icon}</span>
+    <span class="error-code-badge ${info.type}">${escapeHtml(info.title)}</span>
+  </div>
+  <div class="error-text">${escapeHtml(info.message)}</div>`;
+  if (responseText) html += `<div class="error-details">${escapeHtml(responseText.slice(0, 1200))}</div>`;
+  if (info.hint) html += `<div class="error-hint">💡 ${escapeHtml(info.hint)}</div>`;
+  block.innerHTML = html;
+
+  const w = chatMessages.querySelector('.welcome-message');
+  if (w) w.remove();
+  chatMessages.appendChild(block);
+  scrollBottom();
+}
+
+function addTypingIndicator() {
+  const div = document.createElement('div');
+  div.className = 'message ai';
+  div.id = 'typingIndicator';
+  div.innerHTML = `<div class="avatar">🤖</div><div class="typing-indicator"><span></span><span></span><span></span></div>`;
+  chatMessages.appendChild(div);
+  scrollBottom();
+}
+function removeTypingIndicator() { const el = document.getElementById('typingIndicator'); if (el) el.remove(); }
+
+function saveConversations() {
+  try {
+    const json = JSON.stringify(conversations);
+    localStorage.setItem(STORAGE_KEY, json);
+    try { sessionStorage.setItem(STORAGE_KEY, json); } catch {}
+  } catch (e) { log('error', 'Ошибка сохранения: ' + e.message); }
+}
+
+function loadConversations() {
+  try {
+    let raw = localStorage.getItem(STORAGE_KEY);
+    let source = STORAGE_KEY;
+    if (!raw) {
+      for (const oldKey of LEGACY_KEYS) {
+        const oldRaw = localStorage.getItem(oldKey);
+        if (oldRaw) { raw = oldRaw; source = oldKey; localStorage.setItem(STORAGE_KEY, oldRaw); break; }
+      }
+    }
+    if (!raw) { try { raw = sessionStorage.getItem(STORAGE_KEY); } catch {} }
+    if (raw) { conversations = JSON.parse(raw); log('success', `Загружено чатов: ${conversations.length} (${source})`); }
+    else { conversations = []; }
+  } catch (e) { log('error', 'Ошибка загрузки: ' + e.message); conversations = []; }
+}
+
+function exportHistory() {
+  try {
+    const json = JSON.stringify(conversations, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ai-chat-history-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    log('success', `Экспортировано ${conversations.length} чатов`);
+  } catch (e) { log('error', 'Экспорт: ' + e.message); }
+}
+
+function updateTokensSummary() {
+  const chat = getActiveChat();
+  if (!chat) { tokensSummary.style.display = 'none'; return; }
+  let total = 0, count = 0, cost = 0;
+  chat.messages.forEach(m => {
+    if (m.usage) {
+      const t = m.usage.total_tokens || (m.usage.prompt_tokens||0) + (m.usage.completion_tokens||0);
+      total += t;
+      cost += calcCost(m.model, t);
+      count++;
+    }
+  });
+  if (count === 0) { tokensSummary.style.display = 'none'; return; }
+  tokensSummary.innerHTML = `🎫 Чат: ${fmtTokens(total)} ток. · ответов: ${count} · <b style="color:#ffd47a">💰 ${fmtCost(cost)}</b>`;
+  tokensSummary.style.display = 'block';
+}
+
+function renderChatsList() {
+  chatsList.innerHTML = '';
+  if (conversations.length === 0) {
+    chatsList.innerHTML = '<div style="text-align:center;color:#5c6f8a;font-size:0.8rem;padding:20px;">Нет чатов</div>';
+    return;
+  }
+  [...conversations].sort((a,b) => b.createdAt - a.createdAt).forEach(chat => {
+    const item = document.createElement('div');
+    item.className = 'chat-item' + (chat.id === activeChatId ? ' active' : '');
+    const last = chat.messages[chat.messages.length - 1];
+    const preview = last ? (last.content || (last.image ? '🖼 Фото' : '⚠ Ошибка')).slice(0, 40) : 'Пусто';
+    item.innerHTML = `
+      <span class="chat-icon">💬</span>
+      <div class="chat-info">
+        <div class="chat-title">${escapeHtml(chat.title)}</div>
+        <div class="chat-preview">${escapeHtml(preview)}</div>
+      </div>
+    `;
+    item.addEventListener('click', () => switchChat(chat.id));
+    chatsList.appendChild(item);
+  });
+}
+
+function switchChat(id) {
+  const chat = conversations.find(c => c.id === id);
+  if (!chat) return;
+  activeChatId = id;
+  if (chat.model) modelSelect.value = chat.model;
+  chatTitle.textContent = chat.title;
+  renderMessages();
+  renderChatsList();
+  updateAttachButtonState();
+  updateTokensSummary();
+  sidebar.classList.remove('open');
+  overlay.classList.remove('show');
+}
+
+function renderMessages() {
+  chatMessages.innerHTML = '';
+  const chat = getActiveChat();
+  if (!chat || chat.messages.length === 0) {
+    chatMessages.innerHTML = '<div class="welcome-message"><strong>Начните диалог!</strong></div>';
+    return;
+  }
+  chat.messages.forEach(m => {
+    if (m.role === 'user') addMessageToDOM('user', m.content, null, m.time, null, m.image);
+    else if (m.role === 'error') addErrorBlock(m.errorInfo, m.responseText);
+    else addMessageToDOM('ai', m.content, m.model, m.time, m.reasoning, null, m.usage);
+  });
+  scrollBottom();
+}
+
+function createNewChat() {
+  const chat = {
+    id: genId(), title: 'Новый чат',
+    model: modelSelect.value, messages: [], createdAt: Date.now()
+  };
+  conversations.push(chat);
+  activeChatId = chat.id;
+  saveConversations();
+  renderChatsList();
+  renderMessages();
+  updateAttachButtonState();
+  updateTokensSummary();
+  chatTitle.textContent = chat.title;
+  userInput.focus();
+}
+
+function updateAttachButtonState() {
+  const chat = getActiveChat();
+  const model = chat?.model || modelSelect.value;
+  const supported = modelSupportsImagesInMode(model);
+  if (supported) {
+    attachBtn.classList.remove('disabled');
+    attachBtn.disabled = false;
+    attachBtn.title = appMode === 'full' ? 'Фото' : 'Фото (Mimo)';
+    attachBtn.textContent = '📎';
+  } else {
+    attachBtn.classList.add('disabled');
+    attachBtn.disabled = true;
+    attachBtn.title = 'В экономном режиме GPT не принимает фото';
+    attachBtn.textContent = '🚫';
+  }
+}
+
+function openCameraModal() {
+  const chat = getActiveChat();
+  const model = chat?.model || modelSelect.value;
+  if (!modelSupportsImagesInMode(model)) {
+    addErrorBlock({ type:'warn', title:'ФОТО ЗАБЛОКИРОВАНО (⚡ ЭКОНОМ)',
+      message:`В экономном режиме ${MODEL_CAPS[model]?.label || model} не принимает изображения.`,
+      hint:'Переключись на ✨ Полный режим или выбери 🌀 Mimo-v2.5.' }, null, false, true);
+    return;
+  }
+  cameraModal.classList.add('show');
+  if (!navigator.mediaDevices?.getUserMedia) { log('warn', 'Камера недоступна, открываю галерею'); camGalleryBtn.click(); return; }
+  startCamera('environment');
+}
+
+async function startCamera(facing) {
+  stopCamera();
+  currentFacing = facing;
+  camPlaceholder.textContent = 'Запрос доступа к камере...';
+  camPlaceholder.style.display = 'block';
+  cameraVideo.style.display = 'none';
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: facing }, width: { ideal: 1920 }, height: { ideal: 1440 } },
+      audio: false
+    });
+    cameraStream = stream;
+    cameraVideo.srcObject = stream;
+    cameraVideo.style.display = 'block';
+    camPlaceholder.style.display = 'none';
+    cameraActive = true;
+    log('success', `Камера запущена (${facing})`);
+  } catch (e) {
+    log('error', `Камера недоступна: ${e.message}`);
+    camPlaceholder.innerHTML = `Камера недоступна:<br><small>${escapeHtml(e.message)}</small><br><br>Используй 🖼 Галерея`;
+    camPlaceholder.style.display = 'block';
+    cameraVideo.style.display = 'none';
+    cameraActive = false;
+  }
+}
+function stopCamera() {
+  if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+  cameraVideo.srcObject = null;
+  cameraActive = false;
+}
+function closeCameraModal() { stopCamera(); cameraModal.classList.remove('show'); }
+
+function capturePhoto() {
+  if (!cameraActive || !cameraVideo.videoWidth) { log('warn', 'Камера не активна'); return; }
+  const canvas = cameraCanvas;
+  canvas.width = cameraVideo.videoWidth;
+  canvas.height = cameraVideo.videoHeight;
+  const ctx = canvas.getContext('2d');
+  if (currentFacing === 'user') { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
+  ctx.drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    if (blob.size > MAX_IMG_SIZE) { alert('Снимок >5 МБ'); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      pendingImage = { dataUrl: ev.target.result, name: `photo_${Date.now()}.jpg`, size: blob.size };
+      attachmentThumb.src = ev.target.result;
+      attachmentName.textContent = `Фото (${(blob.size / 1024).toFixed(0)} КБ)`;
+      attachmentPreview.classList.add('show');
+      log('success', `Фото снято (${(blob.size / 1024).toFixed(0)} КБ)`);
+      closeCameraModal();
+    };
+    reader.readAsDataURL(blob);
+  }, 'image/jpeg', 0.92);
+}
+
+function processFile(file) {
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { alert('Только изображения'); return; }
+  if (file.size > MAX_IMG_SIZE) { alert('Файл >5 МБ'); return; }
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    pendingImage = { dataUrl: ev.target.result, name: file.name, size: file.size };
+    attachmentThumb.src = ev.target.result;
+    attachmentName.textContent = `${file.name} (${(file.size / 1024).toFixed(0)} КБ)`;
+    attachmentPreview.classList.add('show');
+    log('info', `Прикреплено: ${file.name}`);
+  };
+  reader.readAsDataURL(file);
+}
+
+async function handleSend() {
+  const text = userInput.value.trim();
+  const hasImage = !!pendingImage;
+  if ((!text && !hasImage) || isLoading) return;
+  let chat = getActiveChat();
+  if (!chat) { createNewChat(); chat = getActiveChat(); }
+  const model = chat.model || modelSelect.value;
+
+  if (hasImage && !modelSupportsImagesInMode(model)) {
+    addErrorBlock({ type:'warn', title:'ФОТО ЗАБЛОКИРОВАНО',
+      message:`В экономном режиме ${MODEL_CAPS[model]?.label || model} не принимает фото.`,
+      hint:'Включи ✨ Полный режим или выбери 🌀 Mimo-v2.5.' }, null, false, true);
+    return;
+  }
+
+  isLoading = true;
+  sendBtn.disabled = true;
+  userInput.disabled = true;
+  attachBtn.disabled = true;
+
+  const time = now();
+  const imageData = hasImage ? pendingImage.dataUrl : null;
+  chat.messages.push({ role:'user', content: text || '', image: imageData, time });
+
+  if (chat.messages.filter(m => m.role === 'user').length === 1) {
+    const t = text || '🖼 Фото';
+    chat.title = t.slice(0, 40) + (t.length > 40 ? '...' : '');
+    chatTitle.textContent = chat.title;
+  }
+
+  addMessageToDOM('user', text, null, time, null, imageData);
+  userInput.value = '';
+  userInput.style.height = 'auto';
+  pendingImage = null;
+  attachmentPreview.classList.remove('show');
+  saveConversations();
+  renderChatsList();
+  addTypingIndicator();
+
+  try {
+    const messages = buildMessagesForModel(chat, model);
+    const payload = { model, messages, temperature: 0.7, max_tokens: 2048 };
+    const result = await apiRequest(payload);
+    removeTypingIndicator();
+    const aiTime = now();
+    chat.messages.push({
+      role:'assistant', content: result.content, reasoning: result.reasoning,
+      model: result.model, time: aiTime, usage: result.usage
+    });
+    addMessageToDOM('ai', result.content, result.model, aiTime, result.reasoning, null, result.usage);
+    saveConversations();
+    renderChatsList();
+    updateTokensSummary();
+  } catch (e) {
+    removeTypingIndicator();
+    const info = e._classified || { type:'unknown', title:'UNKNOWN', code:'?', message: e.message };
+    chat.messages.push({ role:'error', errorInfo: info, responseText: e._responseText || null, time: now() });
+    addErrorBlock(info, e._responseText || null);
+    saveConversations();
+  } finally {
+    isLoading = false;
+    sendBtn.disabled = false;
+    userInput.disabled = false;
+    updateAttachButtonState();
+    userInput.focus();
+  }
+}
+
+async function testAllTransports() {
+  testBtn.disabled = true;
+  testBtn.textContent = '⏳ Тест...';
+  const all = buildTransports(ENDPOINT);
+  log('info', `═════ ТЕСТ ${all.length} ТРАНСПОРТОВ ═════`);
+  const results = [];
+  for (const t of all) {
+    const t0 = performance.now();
+    try {
+      const resp = await fetch(t.url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${API_KEY}` },
+        body: JSON.stringify({ model: 'mimo-v2.5', messages: [{ role: 'user', content: 'ping' }], max_tokens: 5 })
+      });
+      const dt = ((performance.now() - t0) / 1000).toFixed(2);
+      if (resp.ok) {
+        const d = await resp.json();
+        const txt = d.choices?.[0]?.message?.content || '';
+        log('success', `✓ [${t.name}] ${resp.status} (${dt}s)`);
+        results.push({ name: t.name, ok: true, status: resp.status, time: dt, text: txt });
+      } else {
+        const errText = await resp.text();
+        log('error', `✗ [${t.name}] ${resp.status} (${dt}s)`);
+        results.push({ name: t.name, ok: false, status: resp.status, time: dt, text: errText });
+      }
+    } catch (e) {
+      const dt = ((performance.now() - t0) / 1000).toFixed(2);
+      log('error', `✗ [${t.name}] FAIL (${dt}s): ${e.message}`);
+      results.push({ name: t.name, ok: false, status: 0, time: dt, text: e.message });
+    }
+  }
+  const okCount = results.filter(r => r.ok).length;
+  const okList = results.filter(r => r.ok);
+  const block = document.createElement('div');
+  block.className = 'error-block' + (okCount > 0 ? ' ok' : '');
+  let html = `<div class="error-header">
+    <span>${okCount > 0 ? '✅' : '❌'} Тест транспортов</span>
+    <span class="error-code-badge ${okCount > 0 ? 'success' : 'network'}">${okCount}/${results.length} OK</span>
+  </div><div class="error-text">`;
+  if (okCount > 0) {
+    html += `Работают: <b>${okList.map(r => r.name).join(', ')}</b>`;
+    updateProxyDot(true);
+    lastWorkingTransport = okList[0].name;
+  } else {
+    html += `Ни один не сработал. Проверь ⚙️`;
+    updateProxyDot(false);
+  }
+  html += `</div><div class="error-details">`;
+  results.forEach(r => {
+    html += `${r.ok ? '✓' : '✗'} [${r.name}] status=${r.status} ${r.time}s\n`;
+  });
+  html += `</div>`;
+  if (okCount === 0) html += `<div class="error-hint">💡 Открой ⚙️ и проверь URL прокси</div>`;
+  else html += `<div class="error-hint">💡 Транспорт: <b>${okList[0].name}</b></div>`;
+  block.innerHTML = html;
+  const w = chatMessages.querySelector('.welcome-message');
+  if (w) w.remove();
+  chatMessages.appendChild(block);
+  scrollBottom();
+  testBtn.disabled = false;
+  testBtn.textContent = '🧪 Тест';
+}
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => setMode(btn.dataset.mode));
+});
+
+userInput.addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+userInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
+});
+userInput.addEventListener('paste', (e) => {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  const chat = getActiveChat();
+  const model = chat?.model || modelSelect.value;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      if (!modelSupportsImagesInMode(model)) {
+        addErrorBlock({ type:'warn', title:'ФОТО ЗАБЛОКИРОВАНО',
+          message:`В экономном режиме ${MODEL_CAPS[model]?.label || model} не принимает изображения.`,
+          hint:'Переключись на ✨ Полный режим.' }, null, false, true);
+        break;
+      }
+      const file = item.getAsFile();
+      if (file) processFile(file);
+      break;
+    }
+  }
+});
+
+sendBtn.addEventListener('click', handleSend);
+newChatBtn.addEventListener('click', createNewChat);
+clearAllBtn.addEventListener('click', () => {
+  if (!confirm('Удалить ВСЕ чаты? Это действие нельзя отменить.')) return;
+  conversations = [];
+  saveConversations();
+  createNewChat();
+});
+exportBtn.addEventListener('click', exportHistory);
+
+modelSelect.addEventListener('change', () => {
+  const c = getActiveChat();
+  if (c) { c.model = modelSelect.value; saveConversations(); }
+  updateAttachButtonState();
+  if (!modelSupportsImagesInMode(modelSelect.value) && pendingImage) {
+    pendingImage = null;
+    attachmentPreview.classList.remove('show');
+    addErrorBlock({ type:'warn', title:'ФОТО УБРАНО',
+      message:`${MODEL_CAPS[modelSelect.value]?.label} не принимает фото в экономном режиме.`,
+      hint:'Включи ✨ Полный режим или вернись на Mimo.' }, null, false, true);
+  }
+});
+
+menuToggle.addEventListener('click', () => { sidebar.classList.toggle('open'); overlay.classList.toggle('show'); });
+overlay.addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('show'); });
+testBtn.addEventListener('click', testAllTransports);
+attachBtn.addEventListener('click', openCameraModal);
+camShutterBtn.addEventListener('click', capturePhoto);
+camFlipBtn.addEventListener('click', () => startCamera(currentFacing === 'environment' ? 'user' : 'environment'));
+camGalleryBtn.addEventListener('click', () => {
+  stopCamera();
+  cameraModal.classList.remove('show');
+  fileInput.click();
+});
+cameraCloseBtn.addEventListener('click', closeCameraModal);
+cameraModal.addEventListener('click', (e) => { if (e.target === cameraModal) closeCameraModal(); });
+
+fileInput.addEventListener('change', (e) => {
+  processFile(e.target.files[0]);
+  fileInput.value = '';
+});
+attachmentRemove.addEventListener('click', () => {
+  pendingImage = null;
+  attachmentPreview.classList.remove('show');
+});
+imgViewer.addEventListener('click', () => imgViewer.classList.remove('show'));
+
+function openProxyModal() {
+  const cur = getCustomProxy();
+  proxyInput.value = '';
+  proxyInput.placeholder = cur ? '•••••• (уже настроен)' : 'https://...';
+  if (cur) { currentProxyBox.textContent = '✓ Прокси настроен'; currentProxyBox.classList.remove('empty'); }
+  else { currentProxyBox.textContent = 'Прокси не задан'; currentProxyBox.classList.add('empty'); }
+  proxyModal.classList.add('show');
+  setTimeout(() => proxyInput.focus(), 100);
+}
+proxyBtn.addEventListener('click', openProxyModal);
+proxyCancelBtn.addEventListener('click', () => proxyModal.classList.remove('show'));
+proxyModal.addEventListener('click', (e) => { if (e.target === proxyModal) proxyModal.classList.remove('show'); });
+proxySaveBtnModal.addEventListener('click', () => {
+  let url = proxyInput.value.trim();
+  if (url) {
+    url = url.replace(/\/+$/, '');
+    setCustomProxy(url);
+    log('success', '✓ Прокси сохранён');
+  } else {
+    if (!getCustomProxy()) log('info', 'Прокси не задан');
+    else log('info', 'Прокси оставлен без изменений');
+  }
+  updateProxyDot(false);
+  lastWorkingTransport = null;
+  proxyModal.classList.remove('show');
+});
+proxyClearBtn.addEventListener('click', () => {
+  setCustomProxy('');
+  proxyInput.value = '';
+  currentProxyBox.textContent = 'Прокси не задан';
+  currentProxyBox.classList.add('empty');
+  lastWorkingTransport = null;
+  updateProxyDot(false);
+  log('info', 'Прокси очищен');
+});
+
+logToggle.addEventListener('click', () => {
+  logPanelOpen = !logPanelOpen;
+  logPanel.classList.toggle('open', logPanelOpen);
+  if (logPanelOpen) { unreadLogs = 0; updateLogBadge(); }
+});
+logCloseBtn.addEventListener('click', () => { logPanelOpen = false; logPanel.classList.remove('open'); });
+logClearBtn.addEventListener('click', () => { logs = []; logBody.innerHTML = ''; unreadLogs = 0; updateLogBadge(); });
+
+window.addEventListener('beforeunload', saveConversations);
+window.addEventListener('pagehide', saveConversations);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') saveConversations();
+});
+
+function init() {
+  log('info', '════════════════════════');
+  log('info', 'AI Чат запущен');
+  log('info', `Платформа: ${navigator.platform || 'unknown'}`);
+  log('info', `Камера API: ${navigator.mediaDevices?.getUserMedia ? 'да' : 'нет'}`);
+
+  appMode = getMode();
+  updateModeUI();
+  log('info', `Режим: ${appMode === 'eco' ? '⚡ Экономный' : '✨ Полный'}`);
+
+  loadConversations();
+  if (conversations.length === 0) createNewChat();
+  else {
+    const sorted = [...conversations].sort((a,b) => b.createdAt - a.createdAt);
+    switchChat(sorted[0].id);
+  }
+  renderChatsList();
+  updateAttachButtonState();
+  updateTokensSummary();
+  userInput.focus();
+  log('success', `Готово ✓ История: ${conversations.length} чатов`);
+}
+
+window.addEventListener('load', init);
+</script>
+</body>
+</html>    pointer-events: none;
   }
   .logo {
     padding: 16px 14px 10px; font-size: 15px; font-weight: 700;

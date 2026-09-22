@@ -628,18 +628,28 @@ const LEGACY_KEYS = ['ai_chats_v1','ai_chats_v2','ai_chats_v3','ai_chats_v4','ai
 
 const MAX_IMG_SIZE = 5 * 1024 * 1024;
 
+// 💰 Тариф: 1.45 ₽ за 200 000 тарифных единиц
 const PRICE_BLOCK = 1.45;
 const BLOCK_SIZE = 200000;
+
+// Коэффициенты: сырые токены → тарифные единицы ("списано")
 const MODEL_COEF = {
-  'mimo-v2.5':    0.05,
+  'mimo-v2.5':    0.032,
   'gpt-5.6-luna': 0.33
 };
 
-function calcCost(model, totalTokens) {
+// Возвращает всё, что нужно для отображения
+function calcUsage(model, totalTokens) {
   const coef = MODEL_COEF[model] ?? 0;
-  const tarifTokens = totalTokens * coef;
-  return (tarifTokens / BLOCK_SIZE) * PRICE_BLOCK;
+  const billed = Math.round(totalTokens * coef);
+  const cost = (billed / BLOCK_SIZE) * PRICE_BLOCK;
+  return { raw: totalTokens, billed, cost, coef };
 }
+// Обратная совместимость
+function calcCost(model, totalTokens) {
+  return calcUsage(model, totalTokens).cost;
+}
+
 function fmtCost(v) {
   if (v <= 0) return '0 ₽';
   if (v < 0.0001) return '< 0.0001 ₽';
@@ -1016,6 +1026,24 @@ function buildMessagesForModel(chat, model) {
 }
 
 // ═══════════════════════════════════════════
+// ТОКЕНЫ — ФОРМИРОВАНИЕ СТРОКИ
+// ═══════════════════════════════════════════
+function buildTokensLine(model, usage) {
+  const p = usage.prompt_tokens || 0;
+  const c = usage.completion_tokens || 0;
+  const t = usage.total_tokens || (p + c);
+  const { billed, cost, coef } = calcUsage(model, t);
+  const el = document.createElement('div');
+  el.className = 'tokens-line';
+  el.innerHTML =
+    `🎫 ${fmtTokens(t)} ток. ` +
+    `→ <b style="color:#a0c8ff">списано ${billed}</b> ` +
+    `(×${coef}) · ` +
+    `<b style="color:#ffd47a">💰 ${fmtCost(cost)}</b>`;
+  return el;
+}
+
+// ═══════════════════════════════════════════
 // UI СООБЩЕНИЯ
 // ═══════════════════════════════════════════
 function addMessageToDOM(role, content, modelName, time, reasoning, imageData, usage) {
@@ -1050,15 +1078,7 @@ function addMessageToDOM(role, content, modelName, time, reasoning, imageData, u
     bubble.appendChild(details);
   }
   if (usage) {
-    const tokensEl = document.createElement('div');
-    tokensEl.className = 'tokens-line';
-    const p = usage.prompt_tokens || 0;
-    const c = usage.completion_tokens || 0;
-    const t = usage.total_tokens || (p + c);
-    const cost = calcCost(modelName, t);
-    const coef = MODEL_COEF[modelName] ?? 0;
-    tokensEl.innerHTML = `🎫 ${fmtTokens(t)} ток. · ×${coef} · <b style="color:#ffd47a">💰 ${fmtCost(cost)}</b>`;
-    bubble.appendChild(tokensEl);
+    bubble.appendChild(buildTokensLine(modelName, usage));
   }
   const timeEl = document.createElement('div');
   timeEl.className = 'timestamp';
@@ -1116,13 +1136,7 @@ function finalizeStreamingMessage(content, model, time, reasoning, usage) {
     bubble.insertBefore(details, bubble.querySelector('.timestamp'));
   }
   if (usage) {
-    const t = usage.total_tokens || (usage.prompt_tokens||0) + (usage.completion_tokens||0);
-    const cost = calcCost(model, t);
-    const coef = MODEL_COEF[model] ?? 0;
-    const tokensEl = document.createElement('div');
-    tokensEl.className = 'tokens-line';
-    tokensEl.innerHTML = `🎫 ${fmtTokens(t)} ток. · ×${coef} · <b style="color:#ffd47a">💰 ${fmtCost(cost)}</b>`;
-    bubble.insertBefore(tokensEl, bubble.querySelector('.timestamp'));
+    bubble.insertBefore(buildTokensLine(model, usage), bubble.querySelector('.timestamp'));
   }
   scrollBottom();
 }
@@ -1196,22 +1210,26 @@ function exportHistory() {
 }
 
 // ═══════════════════════════════════════════
-// ТОКЕНЫ
+// ТОКЕНЫ — СВОДКА ПО ЧАТУ
 // ═══════════════════════════════════════════
 function updateTokensSummary() {
   const chat = getActiveChat();
   if (!chat) { tokensSummary.style.display = 'none'; return; }
-  let total = 0, count = 0, cost = 0;
+  let raw = 0, billed = 0, count = 0, cost = 0;
   chat.messages.forEach(m => {
     if (m.usage) {
       const t = m.usage.total_tokens || (m.usage.prompt_tokens||0) + (m.usage.completion_tokens||0);
-      total += t;
-      cost += calcCost(m.model, t);
+      const u = calcUsage(m.model, t);
+      raw += u.raw;
+      billed += u.billed;
+      cost += u.cost;
       count++;
     }
   });
   if (count === 0) { tokensSummary.style.display = 'none'; return; }
-  tokensSummary.innerHTML = `🎫 Чат: ${fmtTokens(total)} ток. · ответов: ${count} · <b style="color:#ffd47a">💰 ${fmtCost(cost)}</b>`;
+  tokensSummary.innerHTML =
+    `🎫 Чат: ${fmtTokens(raw)} ток. → <b style="color:#a0c8ff">списано ${billed}</b>` +
+    ` · ответов: ${count} · <b style="color:#ffd47a">💰 ${fmtCost(cost)}</b>`;
   tokensSummary.style.display = 'block';
 }
 

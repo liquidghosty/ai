@@ -84,7 +84,6 @@ body {
 }
 .header-controls { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 
-/* Режим */
 .mode-toggle {
   display:flex; align-items:center;
   background:rgba(255,255,255,0.03);
@@ -130,7 +129,6 @@ body {
 .mini-btn.green { border-color:rgba(80,255,150,0.3); background:rgba(80,255,150,0.08); color:#7affb0; }
 .mini-btn:disabled { opacity:0.5; cursor:not-allowed; }
 
-/* Тумблер прокси */
 .proxy-switch {
   display:inline-flex; align-items:center; gap:6px;
   padding:5px 10px 5px 6px;
@@ -234,6 +232,12 @@ body {
   font-style:italic; line-height:1.5;
 }
 .reasoning-box summary { cursor:pointer; font-weight:600; font-style:normal; }
+
+.stream-text .cursor {
+  display:inline-block; margin-left:2px;
+  color:#a0c8ff; animation:blink 1s steps(1) infinite;
+}
+@keyframes blink { 0%,50%{opacity:1;} 51%,100%{opacity:0;} }
 
 .typing-indicator {
   display:flex; gap:6px; padding:12px 20px;
@@ -358,21 +362,13 @@ body {
 .welcome-message { text-align:center; color:#6b7d9c; font-size:0.85rem; padding:20px 10px; }
 .welcome-message strong { color:#9ab4e0; font-weight:500; }
 
-/* ═══ ЛОГИ: РАЗМЕР 0 ═══ */
 .log-toggle {
   position:fixed; right:0; bottom:0;
-  width:0; height:0;
-  padding:0; margin:0;
-  border:none; outline:none;
-  background:transparent; color:transparent;
-  font-size:0; line-height:0;
-  overflow:hidden;
-  pointer-events:none;
-  opacity:0;
-  visibility:hidden;
-  z-index:-1;
+  width:0; height:0; padding:0; margin:0;
+  border:none; outline:none; background:transparent; color:transparent;
+  font-size:0; line-height:0; overflow:hidden;
+  pointer-events:none; opacity:0; visibility:hidden; z-index:-1;
 }
-.log-toggle .badge { display:none !important; }
 
 .log-panel {
   position:fixed; right:16px; bottom:16px; width:460px; max-height:50vh;
@@ -382,9 +378,7 @@ body {
   display:flex; flex-direction:column; z-index:200;
   transform:translateY(calc(100% + 20px));
   transition:transform 0.35s cubic-bezier(0.4,0,0.2,1); overflow:hidden;
-  pointer-events:none;
-  opacity:0;
-  visibility:hidden;
+  pointer-events:none; opacity:0; visibility:hidden;
 }
 .log-panel.open { transform:translateY(0); }
 .log-header { display:none; }
@@ -407,7 +401,6 @@ body {
 .img-viewer.show { display:flex; }
 .img-viewer img { max-width:100%; max-height:100%; border-radius:12px; }
 
-/* MODALS */
 .modal-backdrop {
   position:fixed; inset:0; background:rgba(0,0,0,0.75);
   backdrop-filter:blur(6px); z-index:300;
@@ -578,7 +571,6 @@ body {
   </main>
 </div>
 
-<!-- Логи: размер 0, невидимы -->
 <button class="log-toggle" id="logToggle" aria-hidden="true"></button>
 <div class="log-panel" id="logPanel" aria-hidden="true">
   <div class="log-header"></div>
@@ -587,7 +579,6 @@ body {
 
 <div class="img-viewer" id="imgViewer"><img id="imgViewerContent" src=""></div>
 
-<!-- MODAL ПРОКСИ -->
 <div class="modal-backdrop" id="proxyModal">
   <div class="modal">
     <h2>⚙️ Настройки прокси</h2>
@@ -602,7 +593,6 @@ body {
   </div>
 </div>
 
-<!-- MODAL КАМЕРА -->
 <div class="modal-backdrop" id="cameraModal">
   <div class="camera-modal">
     <h2>📷 Фото</h2>
@@ -638,7 +628,6 @@ const LEGACY_KEYS = ['ai_chats_v1','ai_chats_v2','ai_chats_v3','ai_chats_v4','ai
 
 const MAX_IMG_SIZE = 5 * 1024 * 1024;
 
-// 💰 Цены: 1.45 ₽ за 200 000 тарифных токенов
 const PRICE_BLOCK = 1.45;
 const BLOCK_SIZE = 200000;
 const MODEL_COEF = {
@@ -791,15 +780,12 @@ function updateProxyDot(ok) {
 function buildTransports(targetUrl) {
   const list = [];
   const custom = getCustomProxy();
-
-  // Свой прокси — только если тумблер включён
   if (custom && proxyEnabled) {
     list.push({
       name: 'my-proxy',
       url: custom.replace(/\/+$/, '') + targetUrl.replace(/^https?:\/\/[^/]+/, '')
     });
   }
-
   list.push({ name: 'direct', url: targetUrl });
   list.push({ name: 'allorigins',  url: 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl) });
   list.push({ name: 'codetabs',    url: 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(targetUrl) });
@@ -807,7 +793,6 @@ function buildTransports(targetUrl) {
   return list;
 }
 
-// Логи — в консоль (UI отключён)
 function log(level, message) {
   const p = `[AI-Chat][${level.toUpperCase()}]`;
   if (level === 'error') console.error(p, message);
@@ -831,8 +816,116 @@ function makeError(info, responseText) {
 function fmtTokens(n) { return n >= 1000 ? (n/1000).toFixed(1)+'k' : String(n); }
 
 // ═══════════════════════════════════════════
-// API
+// API — СТРИМИНГ
 // ═══════════════════════════════════════════
+async function apiRequestStream(payload, onDelta) {
+  const bodyStr = JSON.stringify({
+    ...payload,
+    stream: true,
+    stream_options: { include_usage: true }
+  });
+  const all = buildTransports(ENDPOINT);
+  let order = all;
+  if (lastWorkingTransport) {
+    const found = all.find(t => t.name === lastWorkingTransport);
+    if (found) order = [found, ...all.filter(t => t.name !== lastWorkingTransport)];
+  }
+
+  for (const t of order) {
+    const t0 = performance.now();
+    log('request', `[${t.name}] POST stream`);
+    try {
+      const resp = await fetch(t.url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${API_KEY}`
+        },
+        body: bodyStr
+      });
+
+      const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+      log('response', `[${t.name}] ← ${resp.status} ${resp.statusText} (${elapsed}s)`);
+
+      if (resp.status === 401 || resp.status === 403) {
+        const text = await resp.text();
+        throw makeError({ type:'auth', title:`HTTP ${resp.status}`, code: resp.status,
+          message:`Ключ отвергнут (${resp.status}).`, hint:'Проверь API_KEY.' }, text);
+      }
+      if (!resp.ok) {
+        const text = await resp.text();
+        if (resp.status >= 500) { log('warn', `[${t.name}] ${resp.status}, дальше...`); continue; }
+        throw makeError({ type:'http', title:`HTTP ${resp.status}`, code: resp.status,
+          message:`Сервер вернул ${resp.status}.`, hint:'Смотри тело ниже.' }, text);
+      }
+
+      if (!resp.body) {
+        throw makeError({ type:'network', title:'NO STREAM BODY', code:'NO_BODY',
+          message:'Ответ без тела для стрима.', hint:'Возможно прокси буферизует.' }, null);
+      }
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+      let fullContent = '';
+      let reasoning = '';
+      let usage = null;
+      let modelName = payload.model;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let idx;
+        while ((idx = buffer.indexOf('\n')) !== -1) {
+          let line = buffer.slice(0, idx).trim();
+          buffer = buffer.slice(idx + 1);
+          if (!line || !line.startsWith('data:')) continue;
+          const data = line.slice(5).trim();
+          if (data === '[DONE]') continue;
+          try {
+            const json = JSON.parse(data);
+            if (json.model) modelName = json.model;
+            if (json.usage) usage = json.usage;
+            const delta = json.choices?.[0]?.delta;
+            if (delta?.content) {
+              fullContent += delta.content;
+              onDelta(delta.content, fullContent);
+            }
+            if (delta?.reasoning_content) {
+              reasoning += delta.reasoning_content;
+            }
+          } catch (e) { /* битый чанк — пропускаем */ }
+        }
+      }
+
+      lastWorkingTransport = t.name;
+      updateProxyDot(true);
+      const total = ((performance.now() - t0) / 1000).toFixed(2);
+      log('success', `[${t.name}] ✓ Стрим завершён (${fullContent.length} симв., ${total}s)`);
+
+      if (!fullContent) {
+        throw makeError({ type:'unknown', title:'EMPTY STREAM', code:'NO_CONTENT',
+          message:'Стрим завершился без контента.', hint:'Прокси мог забуферизовать ответ.' }, null);
+      }
+
+      return { content: fullContent, reasoning: reasoning || null, model: modelName, transport: t.name, usage };
+    } catch (err) {
+      const elapsed = ((performance.now() - t0) / 1000).toFixed(2);
+      if (err._classified && err._classified.type !== 'network') {
+        log('error', `[${t.name}] ✗ ${err._classified.title} (${elapsed}s)`);
+        throw err;
+      }
+      log('warn', `[${t.name}] ✗ ${err.message} (${elapsed}s)`);
+    }
+  }
+  updateProxyDot(false);
+  throw makeError({ type:'network', title:'ВСЕ ТРАНСПОРТЫ УПАЛИ', code:'ALL_FAILED',
+    message:'Стрим не запустился ни через один транспорт.', hint:'Проверь прокси ⚙️' }, null);
+}
+
+// Обычный запрос (для теста транспортов)
 async function apiRequest(payload) {
   const bodyStr = JSON.stringify(payload);
   const all = buildTransports(ENDPOINT);
@@ -978,6 +1071,59 @@ function addMessageToDOM(role, content, modelName, time, reasoning, imageData, u
   const w = chatMessages.querySelector('.welcome-message');
   if (w) w.remove();
   chatMessages.appendChild(msg);
+  scrollBottom();
+}
+
+// Стриминг — живой пузырь
+function addStreamingMessage(modelName, time) {
+  const msg = document.createElement('div');
+  msg.className = 'message ai';
+  msg.id = 'streamingMessage';
+  msg.innerHTML = `
+    <div class="avatar">🤖</div>
+    <div class="bubble">
+      <div class="sender-name">${escapeHtml(modelName || 'AI')}</div>
+      <div class="stream-text"><span class="cursor">▍</span></div>
+      <div class="timestamp">${time || now()}</div>
+    </div>`;
+  const w = chatMessages.querySelector('.welcome-message');
+  if (w) w.remove();
+  chatMessages.appendChild(msg);
+  scrollBottom();
+  return msg;
+}
+
+function updateStreamingMessage(fullText) {
+  const el = document.querySelector('#streamingMessage .stream-text');
+  if (!el) return;
+  el.innerHTML = escapeHtml(fullText).replace(/\n/g, '<br>') + '<span class="cursor">▍</span>';
+  const nearBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight < 120;
+  if (nearBottom) scrollBottom();
+}
+
+function finalizeStreamingMessage(content, model, time, reasoning, usage) {
+  const el = document.getElementById('streamingMessage');
+  if (!el) return;
+  el.removeAttribute('id');
+  const bubble = el.querySelector('.bubble');
+  const streamEl = bubble.querySelector('.stream-text');
+  if (streamEl) streamEl.innerHTML = escapeHtml(content).replace(/\n/g, '<br>');
+
+  if (reasoning) {
+    const details = document.createElement('details');
+    details.className = 'reasoning-box';
+    details.innerHTML = `<summary>💭 Размышления модели</summary><div>${escapeHtml(reasoning).replace(/\n/g,'<br>')}</div>`;
+    bubble.insertBefore(details, bubble.querySelector('.timestamp'));
+  }
+  if (usage) {
+    const t = usage.total_tokens || (usage.prompt_tokens||0) + (usage.completion_tokens||0);
+    const cost = calcCost(model, t);
+    const coef = MODEL_COEF[model] ?? 0;
+    const tokensEl = document.createElement('div');
+    tokensEl.className = 'tokens-line';
+    tokensEl.innerHTML = `🎫 ${fmtTokens(t)} ток. · ×${coef} · <b style="color:#ffd47a">💰 ${fmtCost(cost)}</b>`;
+    bubble.insertBefore(tokensEl, bubble.querySelector('.timestamp'));
+  }
   scrollBottom();
 }
 
@@ -1242,7 +1388,7 @@ function processFile(file) {
 }
 
 // ═══════════════════════════════════════════
-// ОТПРАВКА
+// ОТПРАВКА (СТРИМИНГ)
 // ═══════════════════════════════════════════
 async function handleSend() {
   const text = userInput.value.trim();
@@ -1281,24 +1427,30 @@ async function handleSend() {
   attachmentPreview.classList.remove('show');
   saveConversations();
   renderChatsList();
-  addTypingIndicator();
+
+  const aiTime = now();
+  addStreamingMessage(model, aiTime);
 
   try {
     const messages = buildMessagesForModel(chat, model);
     const payload = { model, messages, temperature: 0.7, max_tokens: 2048 };
-    const result = await apiRequest(payload);
-    removeTypingIndicator();
-    const aiTime = now();
+
+    const result = await apiRequestStream(payload, (delta, full) => {
+      updateStreamingMessage(full);
+    });
+
+    finalizeStreamingMessage(result.content, result.model, aiTime, result.reasoning, result.usage);
+
     chat.messages.push({
       role:'assistant', content: result.content, reasoning: result.reasoning,
       model: result.model, time: aiTime, usage: result.usage
     });
-    addMessageToDOM('ai', result.content, result.model, aiTime, result.reasoning, null, result.usage);
     saveConversations();
     renderChatsList();
     updateTokensSummary();
   } catch (e) {
-    removeTypingIndicator();
+    const streamEl = document.getElementById('streamingMessage');
+    if (streamEl) streamEl.remove();
     const info = e._classified || { type:'unknown', title:'UNKNOWN', code:'?', message: e.message };
     chat.messages.push({ role:'error', errorInfo: info, responseText: e._responseText || null, time: now() });
     addErrorBlock(info, e._responseText || null);
@@ -1494,7 +1646,6 @@ proxyClearBtn.addEventListener('click', () => {
   lastWorkingTransport = null;
 });
 
-// Автосохранение
 window.addEventListener('beforeunload', saveConversations);
 window.addEventListener('pagehide', saveConversations);
 document.addEventListener('visibilitychange', () => {
